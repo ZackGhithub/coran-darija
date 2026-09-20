@@ -37,16 +37,18 @@ export function toggleFlag(marks: Marks, key: string, flag: Flag, now = Date.now
 
 /** Coche ou décoche plusieurs versets d'un coup (ex : « marquer cette session comme mémorisée »). */
 export function setFlags(marks: Marks, keys: string[], flag: Flag, value: boolean, now = Date.now()): Marks {
-  let next = marks;
+  let next: Marks | null = null; // copie faite une seule fois, au premier changement réel
   for (const key of keys) {
-    const cur = next[key] ?? {};
+    const cur = (next ?? marks)[key] ?? {};
     if (!!cur[flag] === value) continue;
+    next ??= { ...marks };
     const mark = { ...cur };
     if (value) mark[flag] = now;
     else delete mark[flag];
-    next = clean(next, key, mark);
+    if (mark.m || mark.f || mark.n) next[key] = mark;
+    else delete next[key];
   }
-  return next;
+  return next ?? marks;
 }
 
 /** Enregistre la note ; une note vide la supprime. */

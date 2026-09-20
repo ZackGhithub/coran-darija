@@ -213,7 +213,7 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 .memo-count { color: var(--emerald-text); }
 
 /* Hifz : bandeau de progression, méthodes, lancement */
-.hifz-hub .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+.hifz-hub .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
 .stat { text-align: center; background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 8px 4px; }
 .stat strong { display: block; font-size: 1.4rem; color: var(--emerald-primary); }
 .stat span { font-size: 0.72rem; color: var(--text-secondary); }
@@ -263,3 +263,7 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 .memo-count .ico { vertical-align: -0.15em; }
 .top-btn .ico { vertical-align: 0; }
 .filter-pill .ico { opacity: 0.9; }
+
+/* Quart de Hizb partiellement mémorisé */
+.quarter-check.partial { background: var(--emerald-light); border-color: var(--emerald-primary); color: var(--emerald-primary); }
+.quarter-count { white-space: nowrap; }

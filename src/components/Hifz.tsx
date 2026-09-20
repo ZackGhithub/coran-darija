@@ -85,6 +85,8 @@ interface Props {
   onFlag: (key: string, flag: Flag) => void;
   onFlags: (keys: string[], flag: Flag, value: boolean) => void;
   onNote: (key: string, text: string) => void;
+  /** Quarts de Hizb faits et Hizb complets (calculés à partir des versets mémorisés). */
+  hizbStats: { quarters: number; complete: number };
   onOpen: (surah: number, verse: number) => void;
 }
 
@@ -248,6 +250,8 @@ export default function Hifz(p: Props) {
         <div className="stat-row">
           <div className="stat"><strong>{tot.verses}</strong><span><Icon name="memorized" size="1em" /> verset{tot.verses > 1 ? 's' : ''}</span></div>
           <div className="stat"><strong>{tot.complete}</strong><span>sourate{tot.complete > 1 ? 's' : ''} complète{tot.complete > 1 ? 's' : ''}</span></div>
+          <div className="stat"><strong>{p.hizbStats.quarters}</strong><span>quart{p.hizbStats.quarters > 1 ? 's' : ''} de Hizb</span></div>
+          <div className="stat"><strong>{p.hizbStats.complete}</strong><span>Hizb complet{p.hizbStats.complete > 1 ? 's' : ''}</span></div>
           <div className="stat"><strong>{tot.favorites}</strong><span><Icon name="favorite" size="1em" /> favori{tot.favorites > 1 ? 's' : ''}</span></div>
           <div className="stat"><strong>{tot.notes}</strong><span><Icon name="note" size="1em" /> note{tot.notes > 1 ? 's' : ''}</span></div>
         </div>

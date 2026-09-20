@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Meta, Tab } from './types';
 import { loadMeta } from './lib/data';
-import { QUARTER_COUNT, quartersOfHizb } from './lib/hizb';
+import { QUARTER_COUNT, completeHizb, doneQuarters, quarterProgress, quarterVerses, quartersOfHizb } from './lib/hizb';
 import { exportProgress, importProgress, usePersisted, type VerseStat } from './lib/storage';
 import Recitation from './components/Recitation';
 import IndexView from './components/IndexView';
@@ -30,7 +30,7 @@ export default function App() {
   const [surah, setSurah] = usePersisted<number>('surah', 112);
   const [focusVerse, setFocusVerse] = useState<number | null>(null);
   const [learned, setLearned] = usePersisted<number[]>('learned', []);
-  const [quarters, setQuarters] = usePersisted<number[]>('quarters', []);
+  const [legacyQuarters, setLegacyQuarters] = usePersisted<number[]>('quarters', []); // ancien stockage : converti en versets ci-dessous
   const [verseStats, setVerseStats] = usePersisted<Record<string, VerseStat>>('verseStats', {});
   const [theme, setTheme] = usePersisted<Theme>('theme', 'system');
   const [fontSize, setFontSize] = usePersisted<number>('fontSize', 1.75);
@@ -44,6 +44,35 @@ export default function App() {
   const onFlags = useCallback((keys: string[], flag: Flag, value: boolean) => setMarks((m) => setFlags(m, keys, flag, value)), [setMarks]);
   const onNote = useCallback((key: string, text: string) => setMarks((m) => setNote(m, key, text)), [setMarks]);
   const counts = useMemo(() => memorizedCounts(marks), [marks]);
+
+  // Les Hizb se calculent à partir des versets cochés « mémorisé » : une seule donnée, rien à synchroniser.
+  const qv = useMemo(() => (meta ? quarterVerses(meta.quarters, meta.surahs) : []), [meta]);
+  const qProgress = useMemo(() => quarterProgress(marks, qv), [marks, qv]);
+  const doneQ = useMemo(() => doneQuarters(qProgress), [qProgress]);
+  const hizbDone = useMemo(() => completeHizb(qProgress), [qProgress]);
+
+  // Migration : les quarts cochés avant cette version deviennent des versets mémorisés (une seule fois).
+  useEffect(() => {
+    if (!qv.length || !legacyQuarters.length) return;
+    const keys = legacyQuarters.flatMap((q) => qv[q - 1] ?? []);
+    setMarks((m) => setFlags(m, keys, 'm', true));
+    setLegacyQuarters([]);
+  }, [qv, legacyQuarters, setMarks, setLegacyQuarters]);
+
+  const onToggleQuarter = useCallback(
+    (q: number) => {
+      const keys = qv[q - 1];
+      if (keys) setMarks((m) => setFlags(m, keys, 'm', !keys.every((k) => m[k]?.m)));
+    },
+    [qv, setMarks],
+  );
+  const onToggleHizb = useCallback(
+    (h: number) => {
+      const keys = quartersOfHizb(h).flatMap((q) => qv[q - 1] ?? []);
+      if (keys.length) setMarks((m) => setFlags(m, keys, 'm', !keys.every((k) => m[k]?.m)));
+    },
+    [qv, setMarks],
+  );
   const [toast, setToast] = useState<string | null>(null);
   const [showTop, setShowTop] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -148,7 +177,7 @@ export default function App() {
       <section className="progress-card">
         <div className="progress-meta">
           <div className="progress-title"><span className="status-dot learned" /><span>Suivi des 114 sourates</span></div>
-          <div className="progress-count">{learnedAll.length} / 114 apprises ({pct}%) · {tot.verses} verset{tot.verses > 1 ? 's' : ''} mémorisé{tot.verses > 1 ? 's' : ''} · {quarters.length} / {QUARTER_COUNT} quarts de Hizb</div>
+          <div className="progress-count">{learnedAll.length} / 114 apprises ({pct}%) · {tot.verses} verset{tot.verses > 1 ? 's' : ''} mémorisé{tot.verses > 1 ? 's' : ''} · {doneQ.length} / {QUARTER_COUNT} quarts de Hizb</div>
         </div>
         <div className="progress-track"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
       </section>
@@ -193,14 +222,9 @@ export default function App() {
       {tab === 'hizb' && (
         <HizbView
           meta={meta}
-          done={quarters}
-          onToggle={(q) => setQuarters((l) => toggle(l, q))}
-          onToggleHizb={(h, allDone) =>
-            setQuarters((l) => {
-              const qs = quartersOfHizb(h);
-              return allDone ? l.filter((x) => !qs.includes(x)) : [...new Set([...l, ...qs])].sort((a, b) => a - b);
-            })
-          }
+          progress={qProgress}
+          onToggle={onToggleQuarter}
+          onToggleHizb={onToggleHizb}
           onOpen={(s, a) => openSurah(s, a)}
         />
       )}
@@ -218,6 +242,7 @@ export default function App() {
           onFlag={onFlag}
           onFlags={onFlags}
           onNote={onNote}
+          hizbStats={{ quarters: doneQ.length, complete: hizbDone }}
           onOpen={(s, v) => openSurah(s, v)}
         />
       )}

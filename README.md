@@ -15,7 +15,7 @@ translittération avec les chiffres 3-7-9, « leviers » de racines communes, co
 - **Suivi par verset** : sur chaque verset, *Mémorisé* (pour savoir où l'on en est), *Favori* et *Note*. Une sourate dont tous les versets sont cochés compte comme apprise. L'onglet Hifz sert de tableau de bord (versets mémorisés, bouton « Continuer » vers le prochain groupe à apprendre, favoris, notes) et propose trois méthodes prêtes à l'emploi (Apprendre, Consolider, Tester de mémoire). Ces données restent sur l'appareil ; l'export JSON les inclut.
 - **14 récitateurs** (Alafasy, As-Sudais, Ash-Shuraym, Al-Muaiqly, Al-Husary dont la version pédagogique « Muallim »,
   Abdul Basit, Al-Minshawi…), boucle 1×/3×/5× par verset.
-- **Marquage Hizb** : marqueurs ۞ dans le texte (début de Hizb, ¼, ½, ¾), vue des 60 Hizb / 240 quarts avec suivi et accès direct au texte.
+- **Marquage Hizb** : marqueurs ۞ dans le texte (début de Hizb, ¼, ½, ¾), vue des 60 Hizb / 240 quarts avec accès direct au texte. Le suivi par Hizb et le suivi par verset sont **la même donnée** : cocher un quart marque tous ses versets comme mémorisés (ils comptent dans le tableau de bord du Hifz et dans les sourates complètes), et un quart dont tous les versets sont mémorisés se coche tout seul.
 - Suivi des sourates apprises, statistiques de récitation par verset, export/import de la progression (JSON).
 - Thème clair / sombre / automatique, installable sur l'écran d'accueil de l'iPhone et de l'iPad.
 
