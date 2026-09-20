@@ -14,6 +14,7 @@ const MARKS = /[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿـ﻿​-‏]/g;
 /** Ramène un mot arabe à un squelette comparable. */
 export function normalizeArabic(word: string): string {
   return word
+    .replace(/ٰ/g, 'ا') // alef en exposant : c'est un vrai « a » long (السَّمَٰوَٰتِ = السماوات), pas une simple voyelle
     .replace(MARKS, '')
     .replace(/[ٱأإآٲٳ]/g, 'ا')
     .replace(/[ىئ]/g, 'ي')
@@ -61,8 +62,23 @@ export function allowedErrors(targetLen: number): number {
   return 2;
 }
 
+/** L'orthographe coranique et l'orthographe courante ne notent pas les « a » longs pareil : on compare sans alef. */
+const noAlef = (w: string) => {
+  const s = w.replace(/ا/g, '');
+  return s.length > 0 ? s : w;
+};
+
+/** Le moteur vocal ajoute ou retire souvent le « و » de liaison (« السماوات » entendu « والسماوات »). */
+const withoutLeadingWaw = (w: string) => (w.length > 3 && w[0] === 'و' ? w.slice(1) : w);
+
 export function wordsMatch(target: string, spoken: string): boolean {
-  return levenshtein(target, spoken) <= allowedErrors(target.length);
+  for (const t of new Set([target, withoutLeadingWaw(target)])) {
+    for (const s of new Set([spoken, withoutLeadingWaw(spoken)])) {
+      const a = noAlef(t);
+      if (levenshtein(a, noAlef(s)) <= allowedErrors(a.length)) return true;
+    }
+  }
+  return false;
 }
 
 const COST_WRONG = 1.2; // mot prononcé aligné sur un mot attendu mais différent
