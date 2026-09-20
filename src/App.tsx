@@ -7,12 +7,14 @@ import Recitation from './components/Recitation';
 import IndexView from './components/IndexView';
 import HizbView from './components/HizbView';
 import Guide from './components/Guide';
+import Hifz, { DEFAULT_HIFZ, type HifzSettings } from './components/Hifz';
 import Quiz from './components/Quiz';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'recitation', label: 'Récitation' },
   { id: 'index', label: 'Sourates' },
   { id: 'hizb', label: 'Hizb' },
+  { id: 'hifz', label: 'Hifz' },
   { id: 'guide', label: 'Guide' },
   { id: 'quiz', label: 'Quiz' },
 ];
@@ -32,6 +34,9 @@ export default function App() {
   const [fontSize, setFontSize] = usePersisted<number>('fontSize', 1.75);
   const [reciterId, setReciterId] = usePersisted<string>('reciter', 'alafasy');
   const [repeat, setRepeat] = usePersisted<1 | 3 | 5>('repeat', 1);
+  const [tempo, setTempo] = usePersisted<number>('tempo', 1);
+  const [hifz, setHifz] = usePersisted<HifzSettings>('hifz', DEFAULT_HIFZ);
+  const [hifzPreset, setHifzPreset] = useState<{ surah: number; from: number; to: number; nonce: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [showTop, setShowTop] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -156,6 +161,13 @@ export default function App() {
           onReciter={setReciterId}
           repeat={repeat}
           onRepeat={setRepeat}
+          tempo={tempo}
+          onTempo={setTempo}
+          onHifz={(s, f, t) => {
+            setHifzPreset({ surah: s, from: f, to: t, nonce: Date.now() });
+            setTab('hifz');
+            window.scrollTo({ top: 0 });
+          }}
           verseStats={verseStats}
           onVerseStat={(k, s) => setVerseStats((p) => ({ ...p, [k]: s }))}
         />
@@ -175,6 +187,9 @@ export default function App() {
           onOpen={(s, a) => openSurah(s, a)}
         />
       )}
+      {tab === 'hifz' && (
+        <Hifz meta={meta} reciterId={reciterId} onReciter={setReciterId} tempo={tempo} onTempo={setTempo} settings={{ ...DEFAULT_HIFZ, ...hifz }} onSettings={setHifz} preset={hifzPreset} />
+      )}
       {tab === 'guide' && <Guide />}
       {tab === 'quiz' && <Quiz />}
 
@@ -186,7 +201,8 @@ export default function App() {
           <button className="btn-action-compact" onClick={() => fileInput.current?.click()}>⬆ Importer</button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ''; }} />
         </p>
-        <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com</p>
+        <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com · Horodatage des mots : Quran.com</p>
+        <p className="foot-small">Version {__BUILD_ID__}</p>
       </footer>
 
       {showTop && (

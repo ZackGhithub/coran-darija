@@ -203,12 +203,10 @@ export class StreamAligner {
   private tPos: number; // premier mot attendu non figé
   private sPos = 0; // premier mot dit non figé
   private done: WordStatus[]; // statuts figés (longueur = tPos)
+  private readonly target: string[];
 
-  constructor(
-    private readonly target: string[],
-    startAt = 0,
-    head: WordStatus[] = [],
-  ) {
+  constructor(target: string[], startAt = 0, head: WordStatus[] = []) {
+    this.target = target;
     this.tPos = Math.min(startAt, target.length);
     this.done = Array.from({ length: this.tPos }, (_, i) => head[i] ?? 'pending');
   }

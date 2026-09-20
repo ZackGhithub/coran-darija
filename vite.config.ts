@@ -1,12 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
 
 // Sur GitHub Pages le site vit sous /<dépôt>/ : le workflow fournit BASE_PATH ; en local, la racine suffit.
 const base = process.env.BASE_PATH ?? '/';
 
+// Numéro de version affiché en bas de page : permet de vérifier quelle version tourne réellement (cache de l'app installée).
+const sha = (process.env.GITHUB_SHA ?? (() => { try { return execSync('git rev-parse HEAD').toString(); } catch { return 'local'; } })()).trim().slice(0, 7);
+const buildId = `${sha} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+
 export default defineConfig({
   base,
+  define: { __BUILD_ID__: JSON.stringify(buildId) },
   plugins: [
     react(),
     VitePWA({
@@ -32,8 +38,24 @@ export default defineConfig({
       workbox: {
         // Tout le texte du Coran (~3 Mo) est préchargé : lecture complète hors ligne dès la première visite.
         globPatterns: ['**/*.{js,css,html,png,woff2,json}'],
+        // Les horodatages des mots (~5 Mo pour 7 récitateurs) ne sont PAS préchargés : téléchargés à la demande, puis gardés.
+        globIgnores: ['data/timing/**'],
         navigateFallback: `${base}index.html`,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/data/timing/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'timings', expiration: { maxEntries: 400 } },
+          },
+          {
+            // Audio lu par notre propre code (fetch) : gardé pour le hors-ligne. On exclut les requêtes de l'élément <audio>
+            // (destination « audio », par tranches d'octets) : y répondre depuis le cache casserait la lecture sur Safari.
+            urlPattern: ({ url, request }: { url: URL; request: Request }) => url.origin === 'https://everyayah.com' && request.destination !== 'audio',
+            handler: 'CacheFirst',
+            options: { cacheName: 'audio-versets', expiration: { maxEntries: 300 }, cacheableResponse: { statuses: [200] } },
+          },
+        ],
       },
     }),
   ],

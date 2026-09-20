@@ -20,6 +20,9 @@ interface Props {
   onReciter: (id: string) => void;
   repeat: 1 | 3 | 5;
   onRepeat: (v: 1 | 3 | 5) => void;
+  tempo: number;
+  onTempo: (t: number) => void;
+  onHifz: (surah: number, from: number, to: number) => void;
   verseStats: Record<string, VerseStat>;
   onVerseStat: (key: string, stat: VerseStat) => void;
 }
@@ -48,7 +51,7 @@ export default function Recitation(p: Props) {
   const wasListening = useRef(false);
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
-  const audio = useAudio(reciter, p.repeat);
+  const audio = useAudio(reciter, p.repeat, p.tempo);
   const speech = useSpeech('ar-SA');
   const quarterIdx = useMemo(() => indexQuarters(meta.quarters), [meta.quarters]);
   const enriched = useMemo(() => getEnriched(surahNum), [surahNum]);
@@ -284,6 +287,11 @@ export default function Recitation(p: Props) {
           <button className="btn" onClick={() => p.onRepeat(p.repeat === 1 ? 3 : p.repeat === 3 ? 5 : 1)} title="Nombre de lectures de chaque verset">
             Boucle : {p.repeat}×
           </button>
+          <select className="surah-select tempo-select" value={p.tempo} onChange={(e) => p.onTempo(Number(e.target.value))} aria-label="Vitesse de la récitation" title="Vitesse de la récitation">
+            {[0.5, 0.6, 0.75, 0.9, 1, 1.15, 1.25].map((t) => (
+              <option key={t} value={t}>Vitesse {String(t).replace('.', ',')}×</option>
+            ))}
+          </select>
         </div>
         <div className="font-group">
           <span className="font-label">Taille arabe :</span>
@@ -309,6 +317,7 @@ export default function Recitation(p: Props) {
           </select>
         </label>
         <button className="btn-action-compact" onClick={() => setRange({ from: 1, to: surah.verses })}>Toute la sourate</button>
+        <button className="btn-action-compact" onClick={() => p.onHifz(surahNum, range.from, range.to)} title="Répéter ces versets avec le récitateur (module Hifz)">🔁 Mémoriser (Hifz)</button>
         <button
           className="btn btn-primary"
           disabled={!verses || !speech.supported || speech.listening}

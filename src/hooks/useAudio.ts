@@ -13,7 +13,7 @@ export interface Playing {
  * Lecteur audio : un verset (avec répétition) ou toute la sourate à la suite, avec le récitateur choisi.
  * `repeat` = nombre de lectures de chaque verset (pour mémoriser).
  */
-export function useAudio(reciter: Reciter | undefined, repeat: number) {
+export function useAudio(reciter: Reciter | undefined, repeat: number, rate = 1) {
   const el = useRef<HTMLAudioElement | null>(null);
   const run = useRef(0); // invalide les lectures obsolètes quand on change de verset
   const [playing, setPlaying] = useState<Playing | null>(null);
@@ -39,6 +39,9 @@ export function useAudio(reciter: Reciter | undefined, repeat: number) {
           if (run.current !== my) return;
           setPlaying({ surah, verse });
           const audio = new Audio(ayahUrl(reciter.folder, surah, verse));
+          audio.defaultPlaybackRate = rate;
+          audio.playbackRate = rate;
+          (audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = true;
           el.current = audio;
           try {
             await new Promise<void>((resolve, reject) => {
@@ -57,7 +60,7 @@ export function useAudio(reciter: Reciter | undefined, repeat: number) {
       }
       if (run.current === my) setPlaying(null);
     },
-    [reciter, repeat, stop],
+    [reciter, repeat, rate, stop],
   );
 
   return { playing, error, playVerses, stop };

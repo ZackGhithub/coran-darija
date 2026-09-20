@@ -21,6 +21,8 @@ export interface Reciter {
   country: string;
   style: 'murattal' | 'mujawwad' | 'muallim';
   folder: string;
+  /** Présent seulement si des horodatages réels mot à mot existent pour ce récitateur (surlignage synchronisé). */
+  qcId?: number;
 }
 
 export interface Meta {
@@ -49,4 +51,4 @@ export interface Enriched {
   fr: string;
 }
 
-export type Tab = 'recitation' | 'index' | 'hizb' | 'guide' | 'quiz';
+export type Tab = 'recitation' | 'index' | 'hizb' | 'hifz' | 'guide' | 'quiz';
