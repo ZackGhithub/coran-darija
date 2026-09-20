@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { alignRecitation, normalizeArabic, summarize, tokenizeSpoken, tokenizeVerse } from './arabic';
+import { alignFrom, alignRecitation, normalizeArabic, summarize, tokenizeSpoken, tokenizeVerse } from './arabic';
 
 const FATIHA_2 = 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ';
 const IKHLAS_1 = 'قُلْ هُوَ ٱللَّهُ أَحَدٌ';
@@ -98,5 +98,32 @@ describe("cas réel : Ayat al-Kursi (2:255) entendu par un iPhone", () => {
 
   it('les seuls rouges restants sont les mots que le moteur a avalés ou remplacés', () => {
     expect(red).toEqual(['ذا', 'باذنه', 'كرسيه', 'ولا']);
+  });
+});
+
+describe('alignFrom : reprendre à partir d\'un mot', () => {
+  const target = tokenizeVerse(IKHLAS_1); // قل هو الله احد
+
+  it('les mots avant la reprise gardent leur statut, le reste est comparé à la nouvelle parole', () => {
+    const st = alignFrom(target, 2, ['ok', 'wrong'], tokenizeSpoken('الله احد'));
+    expect(st).toEqual(['ok', 'wrong', 'ok', 'ok']);
+  });
+
+  it('avant que la personne parle, la suite est en attente', () => {
+    expect(alignFrom(target, 2, ['ok', 'ok'], [])).toEqual(['ok', 'ok', 'pending', 'pending']);
+  });
+
+  it('sans statut connu avant la reprise (verset commencé au milieu) : en attente, jamais « parfait »', () => {
+    const st = alignFrom(target, 2, [], tokenizeSpoken('الله احد'));
+    expect(st).toEqual(['pending', 'pending', 'ok', 'ok']);
+    expect(summarize(st).perfect).toBe(false);
+  });
+
+  it('reprise au mot 0 = comparaison normale', () => {
+    expect(alignFrom(target, 0, [], tokenizeSpoken('قل هو الله احد'))).toEqual(['ok', 'ok', 'ok', 'ok']);
+  });
+
+  it('un mot faux à la reprise est rouge, les mots figés ne changent pas', () => {
+    expect(alignFrom(target, 1, ['ok'], tokenizeSpoken('هو ربي احد'))).toEqual(['ok', 'ok', 'wrong', 'ok']);
   });
 });

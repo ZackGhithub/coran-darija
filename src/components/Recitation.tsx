@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Enriched, Meta, Quarter, Verse } from '../types';
 import { getEnriched, loadSurah } from '../lib/data';
-import { alignRecitation, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
+import { alignFrom, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
 import { hizbRangeOfSurah, indexQuarters, markerFor, quarterKey } from '../lib/hizb';
 import type { VerseStat } from '../lib/storage';
 import { useAudio } from '../hooks/useAudio';
@@ -33,6 +33,9 @@ export default function Recitation(p: Props) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [collapse, setCollapse] = useState<{ n: number; open: boolean }>({ n: 0, open: false });
   const [voiceVerse, setVoiceVerse] = useState<number | null>(null);
+  // « Reprendre à ce mot » : index du premier mot comparé, et statuts des mots précédents (figés)
+  const [startAt, setStartAt] = useState(0);
+  const [frozen, setFrozen] = useState<WordStatus[]>([]);
   const wasListening = useRef(false);
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
@@ -47,6 +50,8 @@ export default function Recitation(p: Props) {
     setVerses(null);
     setLoadError(null);
     setVoiceVerse(null);
+    setStartAt(0);
+    setFrozen([]);
     audio.stop();
     speech.stop();
     loadSurah(surahNum)
@@ -72,8 +77,8 @@ export default function Recitation(p: Props) {
   const activeVerse = verses?.find((v) => v.n === voiceVerse) ?? null;
   const statuses: WordStatus[] = useMemo(() => {
     if (!activeVerse) return [];
-    return alignRecitation(tokenizeVerse(activeVerse.ar), tokenizeSpoken(speech.transcript), { provisionalLast: speech.interim });
-  }, [activeVerse, speech.transcript, speech.interim]);
+    return alignFrom(tokenizeVerse(activeVerse.ar), startAt, frozen, tokenizeSpoken(speech.transcript), { provisionalLast: speech.interim });
+  }, [activeVerse, startAt, frozen, speech.transcript, speech.interim]);
   const summary = summarize(statuses);
 
   // Récitation parfaite : on arrête le micro tout seul
@@ -108,10 +113,13 @@ export default function Recitation(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speech.listening]);
 
-  const startVoice = (n: number) => {
+  const startVoice = (n: number, fromWord = 0) => {
     audio.stop();
+    // Reprise au mot k du verset déjà en cours : on garde les statuts des mots précédents
+    setFrozen(fromWord > 0 && n === voiceVerse ? statuses.slice(0, fromWord) : []);
+    setStartAt(fromWord);
     setVoiceVerse(n);
-    speech.start();
+    speech.start(); // remet le moteur et le texte reconnu à zéro
   };
 
   // Le micro ne doit pas « entendre » le récitateur : on coupe l'écoute avant de lancer l'audio.
@@ -233,6 +241,8 @@ export default function Recitation(p: Props) {
           onVoiceStart={() => startVoice(v.n)}
           onVoiceStop={speech.stop}
           onVoiceReset={() => startVoice(v.n)}
+          onWordTap={(idx) => startVoice(v.n, idx)}
+          resumeFrom={voiceVerse === v.n ? startAt : 0}
           voiceSupported={speech.supported}
         />
       ))}
@@ -262,6 +272,8 @@ interface BlockProps {
   onVoiceStart: () => void;
   onVoiceStop: () => void;
   onVoiceReset: () => void;
+  onWordTap: (wordIndex: number) => void;
+  resumeFrom: number;
 }
 
 function VerseBlock(p: BlockProps) {
@@ -303,8 +315,27 @@ function VerseBlock(p: BlockProps) {
         <div className="arabic-text" lang="ar" dir="rtl">
           {segments.map((s, i) => {
             const st = voice && s.idx != null ? voice.statuses[s.idx] : undefined;
+            const cls = [st && st !== 'pending' ? `w-${st}` : '', voice && s.idx != null ? 'w-tap' : ''].filter(Boolean).join(' ');
+            // Les mots ne sont cliquables que dans le verset en cours de récitation (pas d'appui accidentel en défilant)
+            if (voice && s.idx != null) {
+              const idx = s.idx;
+              return (
+                <span
+                  key={i}
+                  className={cls}
+                  data-w={idx}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Reprendre à partir du mot ${idx + 1}`}
+                  onClick={() => p.onWordTap(idx)}
+                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), p.onWordTap(idx))}
+                >
+                  {s.text}{' '}
+                </span>
+              );
+            }
             return (
-              <span key={i} className={st && st !== 'pending' ? `w-${st}` : undefined}>
+              <span key={i} className={cls || undefined}>
                 {s.text}{' '}
               </span>
             );
@@ -336,7 +367,9 @@ function VerseBlock(p: BlockProps) {
                 Entendu : <bdi lang="ar" dir="rtl">{voice.transcript}</bdi>
               </span>
             )}
-            <span className="voice-hint">Vérifie les mots récités, pas les voyelles ni le tajwid.</span>
+            <span className="voice-hint">
+              Touchez un mot pour reprendre à partir de celui-ci{p.resumeFrom > 0 ? ` (reprise au mot ${p.resumeFrom + 1})` : ''}. Vérifie les mots récités, pas les voyelles ni le tajwid.
+            </span>
             {isStandaloneIOS() && (
               <span className="voice-hint">Sur iPhone/iPad, la reconnaissance vocale peut ne pas marcher depuis l&apos;écran d&apos;accueil : ouvrez l&apos;app dans Safari.</span>
             )}

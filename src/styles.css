@@ -134,3 +134,9 @@ footer { text-align: center; padding: 24px 0; color: var(--text-muted); font-siz
   .verse-top-row { flex-wrap: wrap; gap: 8px; }
   .brand-text p { display: none; }
 }
+
+/* Reprise à un mot : mots cliquables uniquement dans le verset en cours de récitation */
+.arabic-text .w-tap { cursor: pointer; border-radius: 6px; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
+.arabic-text .w-tap:hover, .arabic-text .w-tap:focus-visible { background: var(--bg-elevated); outline: none; }
+.arabic-text .w-tap.w-ok:hover { background: var(--ok-bg); }
+.arabic-text .w-tap.w-wrong:hover { background: var(--bad-bg); }

@@ -158,6 +158,21 @@ export function splitVerse(text: string): { text: string; idx: number | null }[]
     .map((t) => (normalizeArabic(t).length > 0 ? { text: t, idx: idx++ } : { text: t, idx: null }));
 }
 
+/**
+ * Comparaison à partir du mot `startAt` : les mots avant gardent le statut qu'ils avaient (`frozen`),
+ * seul le reste du verset est comparé à ce qui est dit. Sert à « reprendre à partir de ce mot ».
+ */
+export function alignFrom(
+  target: string[],
+  startAt: number,
+  frozen: WordStatus[],
+  spoken: string[],
+  opts: { provisionalLast?: boolean } = {},
+): WordStatus[] {
+  const head: WordStatus[] = Array.from({ length: Math.min(startAt, target.length) }, (_, i) => frozen[i] ?? 'pending');
+  return [...head, ...alignRecitation(target.slice(startAt), spoken, opts)];
+}
+
 /** Résumé pour l'affichage et la progression. */
 export function summarize(status: WordStatus[]) {
   const ok = status.filter((s) => s === 'ok').length;
