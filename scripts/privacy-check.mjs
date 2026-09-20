@@ -122,7 +122,8 @@ function scanDist() {
 
 function scanIdentity(withHistory) {
   const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' }).trim();
-  for (const key of ['user.email', 'user.name']) {
+  // En CI il n'y a pas d'identité git configurée : seul l'historique publié compte.
+  for (const key of process.env.CI ? [] : ['user.email', 'user.name']) {
     let v = '';
     try { v = git('config', key); } catch { /* non défini */ }
     if (!v) { report('git config', `${key} non défini`, 'définissez une identité neutre'); continue; }

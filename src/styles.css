@@ -1,0 +1,122 @@
+/* Compléments au thème d'origine (legacy.css) : dark auto, récitation vocale, Hizb, récitateurs, iOS. */
+
+/* Thème « auto » : suit le réglage de l'appareil tant qu'aucun thème n'est forcé */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-main: #0d1513; --bg-card: #15221f; --bg-elevated: #1c2e2a;
+    --text-primary: #e8f1ed; --text-secondary: #a7bbb3; --text-muted: #6b8279;
+    --border-subtle: #243833; --border-focus: #34d399;
+    --emerald-primary: #10b981; --emerald-light: #062820; --emerald-dark: #34d399; --emerald-text: #6ee7b7;
+    --gold-accent: #f59e0b; --gold-bg: #2b1f09; --gold-border: #78350f;
+    --blue-accent: #38bdf8; --blue-bg: #0c2333; --blue-border: #0369a1;
+    --dot-learned: #34d399; --dot-unlearned: #4b5563;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4); --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  }
+}
+:root { --ok: #15803d; --ok-bg: rgba(22, 163, 74, 0.16); --bad: #dc2626; --bad-bg: rgba(220, 38, 38, 0.14); }
+:root[data-theme="dark"] { --ok: #4ade80; --ok-bg: rgba(74, 222, 128, 0.18); --bad: #f87171; --bad-bg: rgba(248, 113, 113, 0.18); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --ok: #4ade80; --ok-bg: rgba(74, 222, 128, 0.18); --bad: #f87171; --bad-bg: rgba(248, 113, 113, 0.18); }
+}
+
+/* iOS : zone sûre (encoche / barre d'accueil) et pas de zoom au focus des champs */
+body { padding-bottom: env(safe-area-inset-bottom); -webkit-text-size-adjust: 100%; }
+.app-container { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-top: max(16px, env(safe-area-inset-top)); }
+input, select, button, textarea { font-size: 16px; }
+button { font-family: inherit; }
+.btn, .tab-btn, .verse-play-btn, .filter-pill { min-height: 44px; }
+.tabs-nav { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.tabs-nav::-webkit-scrollbar { display: none; }
+.tab-btn { white-space: nowrap; }
+
+.muted { color: var(--text-secondary); }
+.loading, .empty { text-align: center; padding: 30px; color: var(--text-muted); grid-column: 1 / -1; }
+.notice { padding: 12px 16px; border-radius: var(--radius-sm); margin: 12px 0; font-size: 0.92rem; }
+.notice-error { background: var(--bad-bg); color: var(--bad); border: 1px solid var(--bad); }
+.link-btn { background: none; border: none; color: var(--emerald-primary); font-weight: 600; cursor: pointer; padding: 6px; min-height: 36px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text-primary); color: var(--bg-main); padding: 10px 18px; border-radius: 24px; font-size: 0.9rem; z-index: 50; max-width: 90vw; }
+
+/* Barre récitateur */
+.recitation-toolbar { flex-wrap: wrap; gap: 12px; }
+.audio-group { flex-wrap: wrap; }
+.reciter-label { display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+.reciter-select { max-width: min(78vw, 320px); }
+.font-label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+.font-group { flex-wrap: wrap; }
+.pill-btn { border: 1px solid var(--border-subtle); cursor: pointer; min-height: 32px; }
+.pill-btn.is-learned { color: var(--emerald-text); background: var(--emerald-light); border-color: var(--emerald-primary); }
+
+/* Marquage Hizb dans le texte */
+.hizb-marker { display: flex; align-items: center; gap: 10px; margin: 22px 4px 10px; padding: 8px 14px; border-radius: var(--radius-md); background: var(--gold-bg); border: 1px dashed var(--gold-border); color: var(--gold-accent); font-size: 0.85rem; flex-wrap: wrap; }
+.hizb-marker.hizb-start { border-style: solid; border-width: 2px; font-weight: 700; }
+.hizb-symbol { font-size: 1.5rem; line-height: 1; }
+.hizb-ar { font-family: var(--font-quran); font-size: 1.15rem; font-weight: 700; }
+.hizb-fr { margin-left: auto; font-weight: 600; }
+
+/* Récitation vocale */
+.verse-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.verse-stat { font-size: 0.78rem; color: var(--text-secondary); background: var(--bg-elevated); padding: 4px 10px; border-radius: 20px; }
+.voice-btn { background: var(--blue-bg); color: var(--blue-accent); border-color: var(--blue-border); }
+.voice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.voice-on { background: var(--bad-bg); color: var(--bad); border-color: var(--bad); }
+.arabic-text .w-ok { color: var(--ok); background: var(--ok-bg); border-radius: 6px; }
+.arabic-text .w-wrong { color: var(--bad); background: var(--bad-bg); border-radius: 6px; text-decoration: underline wavy var(--bad); text-underline-offset: 6px; }
+.w-ok { color: var(--ok); font-weight: 700; }
+.w-wrong { color: var(--bad); font-weight: 700; }
+.w-ok-txt { color: var(--ok); }
+.w-wrong-txt { color: var(--bad); }
+.sajda { color: var(--gold-accent); margin-left: 6px; }
+.voice-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 14px; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--bg-elevated); font-size: 0.9rem; }
+.voice-error { color: var(--bad); font-weight: 600; }
+.voice-perfect { color: var(--ok); font-weight: 700; }
+.voice-hint { flex-basis: 100%; font-size: 0.78rem; color: var(--text-muted); }
+.rec-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--bad); margin-right: 6px; animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } * { scroll-behavior: auto !important; } }
+.not-enriched { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; }
+
+/* Vue Hizb */
+.hizb-summary .hizb-totals { margin: 8px 0 12px; }
+.hizb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.hizb-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+.hizb-card.complete { border-color: var(--emerald-primary); background: var(--emerald-light); }
+.hizb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+.hizb-card-head h3 { font-size: 1.05rem; }
+.hizb-head-ar { font-family: var(--font-quran); margin-left: 6px; color: var(--gold-accent); }
+.quarter-list { list-style: none; display: grid; gap: 4px; margin-bottom: 10px; }
+.quarter-row { display: flex; align-items: center; gap: 10px; }
+.quarter-text { flex: 1; font-size: 0.88rem; min-width: 0; }
+.quarter-check { width: 32px; height: 32px; border-radius: 8px; border: 2px solid var(--border-subtle); background: var(--bg-elevated); color: #fff; font-weight: 700; cursor: pointer; flex: none; }
+.quarter-check.on { background: var(--emerald-primary); border-color: var(--emerald-primary); }
+.progress-track.small { height: 5px; }
+
+/* Cartes de sourate (bouton) */
+button.surah-grid-card { width: 100%; text-align: left; font: inherit; color: inherit; }
+button.surah-grid-card h3, button.surah-grid-card p { text-align: left; }
+.surah-info h3 { font-size: 1rem; }
+
+/* Quiz & guide */
+.quiz-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.quiz-head .guide-title { margin-bottom: 0; }
+.quiz-question { font-size: 1.15rem; font-weight: 700; margin: 16px 0 12px; }
+.quiz-feedback.ok, .quiz-feedback.ko { display: block; }
+.quiz-feedback.ok { background: var(--emerald-light); color: var(--emerald-text); border: 1px solid var(--emerald-primary); }
+.quiz-feedback.ko { background: var(--bad-bg); color: var(--bad); border: 1px solid var(--bad); }
+.quiz-next { display: flex; justify-content: flex-end; margin-top: 16px; }
+.quiz-end { text-align: center; padding: 20px 0; }
+.quiz-end-score { font-size: 2.4rem; font-weight: 700; color: var(--emerald-primary); }
+.table-scroll { overflow-x: auto; }
+.ar-cell { font-family: var(--font-quran); font-size: 1.4rem; }
+.guide-title.spaced { margin-top: 28px; }
+
+footer { text-align: center; padding: 24px 0; color: var(--text-muted); font-size: 0.85rem; }
+.foot-small { font-size: 0.78rem; margin-top: 4px; }
+.foot-actions { display: flex; gap: 8px; justify-content: center; margin: 8px 0; }
+
+@media (max-width: 600px) {
+  .tab-btn { padding: 10px 11px; font-size: 0.86rem; }
+  .tabs-nav { gap: 2px; }
+  .hizb-fr { margin-left: 0; flex-basis: 100%; }
+  .verse-top-row { flex-wrap: wrap; gap: 8px; }
+  .brand-text p { display: none; }
+}
