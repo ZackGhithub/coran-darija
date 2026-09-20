@@ -21,7 +21,7 @@ const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: '
 const args = new Set(process.argv.slice(2));
 if (![...args].some((a) => ['--staged', '--all', '--dist', '--history'].includes(a))) args.add('--staged');
 
-const ALLOWED_EMAILS = [/^noreply@anthropic.com$/i, /^noreply@users\.noreply\.github\.com$/i, /^\d+\+[\w-]+@users\.noreply\.github\.com$/i, /@example\.(com|org|invalid)$/i];
+const ALLOWED_EMAILS = [/^noreply@anthropic\.com$/i,/^noreply@users\.noreply\.github\.com$/i, /^\d+\+[\w-]+@users\.noreply\.github\.com$/i, /@example\.(com|org|invalid)$/i];
 const SKIP_FILES = [/^package-lock\.json$/, /^\.privacy-denylist$/, /^scripts\/privacy-check\.mjs$/];
 const BINARY_EXT = /\.(png|jpe?g|gif|webp|ico|icns|woff2?|ttf|otf|mp3|mp4|zip|pdf|gz)$/i;
 
@@ -40,6 +40,7 @@ const PATTERNS = [
   ['secret affecté', /\b(?:api[_-]?key|secret|token|passw(?:or)?d|pwd)\b\s*[:=]\s*["']?[A-Za-z0-9_\-./+]{8,}/i],
   ['identifiant WhatsApp', /\b\d{8,15}@(?:c|g)\.us\b/],
   ['numéro de téléphone', /(?:\+|00)\d{1,3}[ .-]?\d(?:[ .-]?\d{2}){4}\b|\b0[1-9](?:[ .-]?\d{2}){4}\b/],
+  ['lien de session/artefact Claude (privé)', /claude\.ai\/(?:code\/)?(?:session|artifact|chat)[\w/_-]*/i],
   ['e-mail', /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/],
 ];
 
