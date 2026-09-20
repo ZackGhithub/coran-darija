@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Meta, Tab } from './types';
 import { loadMeta } from './lib/data';
 import { QUARTER_COUNT, quartersOfHizb } from './lib/hizb';
@@ -9,6 +9,7 @@ import HizbView from './components/HizbView';
 import Guide from './components/Guide';
 import Hifz, { DEFAULT_HIFZ, type HifzSettings } from './components/Hifz';
 import Quiz from './components/Quiz';
+import { memorizedCounts, setFlags, setNote, toggleFlag, totals, type Flag, type Marks } from './lib/marks';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'recitation', label: 'Récitation' },
@@ -36,7 +37,12 @@ export default function App() {
   const [repeat, setRepeat] = usePersisted<1 | 3 | 5>('repeat', 1);
   const [tempo, setTempo] = usePersisted<number>('tempo', 1);
   const [hifz, setHifz] = usePersisted<HifzSettings>('hifz', DEFAULT_HIFZ);
-  const [hifzPreset, setHifzPreset] = useState<{ surah: number; from: number; to: number; nonce: number } | null>(null);
+  const [hifzPreset, setHifzPreset] = useState<{ surah: number; from: number; to: number; nonce: number; autoStart?: boolean } | null>(null);
+  const [marks, setMarks] = usePersisted<Marks>('marks', {});
+  const onFlag = useCallback((key: string, flag: Flag) => setMarks((m) => toggleFlag(m, key, flag)), [setMarks]);
+  const onFlags = useCallback((keys: string[], flag: Flag, value: boolean) => setMarks((m) => setFlags(m, keys, flag, value)), [setMarks]);
+  const onNote = useCallback((key: string, text: string) => setMarks((m) => setNote(m, key, text)), [setMarks]);
+  const counts = useMemo(() => memorizedCounts(marks), [marks]);
   const [toast, setToast] = useState<string | null>(null);
   const [showTop, setShowTop] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -67,6 +73,12 @@ export default function App() {
     const t = setTimeout(() => setToast(null), 3500);
     return () => clearTimeout(t);
   }, [toast]);
+
+  /** Une sourate dont tous les versets sont cochés « mémorisé » compte comme apprise, sans avoir à la cocher aussi. */
+  const learnedAll = useMemo(
+    () => (meta ? [...new Set([...learned, ...meta.surahs.filter((s) => (counts.get(s.n) ?? 0) >= s.verses).map((s) => s.n)])].sort((a, b) => a - b) : learned),
+    [learned, counts, meta],
+  );
 
   const openSurah = useCallback(
     (n: number, verse: number | null = null) => {
@@ -111,7 +123,8 @@ export default function App() {
   }
   if (!meta) return <div className="app-container"><div className="loading">Chargement…</div></div>;
 
-  const pct = Math.round((learned.length / meta.surahs.length) * 100);
+  const pct = Math.round((learnedAll.length / meta.surahs.length) * 100);
+  const tot = totals(marks, meta.surahs);
   const cycleTheme = () => setTheme(theme === 'system' ? 'dark' : theme === 'dark' ? 'light' : 'system');
 
   return (
@@ -134,7 +147,7 @@ export default function App() {
       <section className="progress-card">
         <div className="progress-meta">
           <div className="progress-title"><span className="status-dot learned" /><span>Suivi des 114 sourates</span></div>
-          <div className="progress-count">{learned.length} / 114 apprises ({pct}%) · {quarters.length} / {QUARTER_COUNT} quarts de Hizb</div>
+          <div className="progress-count">{learnedAll.length} / 114 apprises ({pct}%) · {tot.verses} verset{tot.verses > 1 ? 's' : ''} mémorisé{tot.verses > 1 ? 's' : ''} · {quarters.length} / {QUARTER_COUNT} quarts de Hizb</div>
         </div>
         <div className="progress-track"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
       </section>
@@ -153,7 +166,7 @@ export default function App() {
           surahNum={surah}
           onSurah={(n) => openSurah(n)}
           focusVerse={focusVerse}
-          learned={learned}
+          learned={learnedAll}
           onToggleLearned={(n) => setLearned((l) => toggle(l, n))}
           fontSize={fontSize}
           onFontSize={setFontSize}
@@ -163,16 +176,19 @@ export default function App() {
           onRepeat={setRepeat}
           tempo={tempo}
           onTempo={setTempo}
-          onHifz={(s, f, t) => {
-            setHifzPreset({ surah: s, from: f, to: t, nonce: Date.now() });
+          onHifz={(s, f, t, autoStart) => {
+            setHifzPreset({ surah: s, from: f, to: t, nonce: Date.now(), autoStart });
             setTab('hifz');
             window.scrollTo({ top: 0 });
           }}
+          marks={marks}
+          onFlag={onFlag}
+          onNote={onNote}
           verseStats={verseStats}
           onVerseStat={(k, s) => setVerseStats((p) => ({ ...p, [k]: s }))}
         />
       )}
-      {tab === 'index' && <IndexView meta={meta} learned={learned} onOpen={(n) => openSurah(n)} />}
+      {tab === 'index' && <IndexView meta={meta} learned={learnedAll} memorized={counts} onOpen={(n) => openSurah(n)} />}
       {tab === 'hizb' && (
         <HizbView
           meta={meta}
@@ -188,7 +204,21 @@ export default function App() {
         />
       )}
       {tab === 'hifz' && (
-        <Hifz meta={meta} reciterId={reciterId} onReciter={setReciterId} tempo={tempo} onTempo={setTempo} settings={{ ...DEFAULT_HIFZ, ...hifz }} onSettings={setHifz} preset={hifzPreset} />
+        <Hifz
+          meta={meta}
+          reciterId={reciterId}
+          onReciter={setReciterId}
+          tempo={tempo}
+          onTempo={setTempo}
+          settings={{ ...DEFAULT_HIFZ, ...hifz }}
+          onSettings={setHifz}
+          preset={hifzPreset}
+          marks={marks}
+          onFlag={onFlag}
+          onFlags={onFlags}
+          onNote={onNote}
+          onOpen={(s, v) => openSurah(s, v)}
+        />
       )}
       {tab === 'guide' && <Guide />}
       {tab === 'quiz' && <Quiz />}

@@ -15,7 +15,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
-export default function IndexView({ meta, learned, onOpen }: { meta: Meta; learned: number[]; onOpen: (n: number) => void }) {
+export default function IndexView({ meta, learned, memorized, onOpen }: { meta: Meta; learned: number[]; memorized: Map<number, number>; onOpen: (n: number) => void }) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const ranges = useMemo(() => meta.surahs.map((s) => hizbRangeOfSurah(meta.quarters, s.n, s.verses)), [meta]);
@@ -50,7 +50,10 @@ export default function IndexView({ meta, learned, onOpen }: { meta: Meta; learn
                 <span className="surah-num">{s.n}</span>
                 <span className="surah-info">
                   <h3>{s.fr}</h3>
-                  <p>{s.tr} • {s.verses} v. • {r.from === r.to ? `Hizb ${r.from}` : `Hizb ${r.from}–${r.to}`}</p>
+                  <p>
+                    {s.tr} • {s.verses} v. • {r.from === r.to ? `Hizb ${r.from}` : `Hizb ${r.from}–${r.to}`}
+                    {(memorized.get(s.n) ?? 0) > 0 && <strong className="memo-count"> · ✓ {memorized.get(s.n)}/{s.verses}</strong>}
+                  </p>
                 </span>
               </span>
               <span className="surah-grid-right">

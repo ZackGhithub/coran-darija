@@ -6,6 +6,9 @@ import { hizbRangeOfSurah, indexQuarters, markerFor, quarterKey } from '../lib/h
 import type { VerseStat } from '../lib/storage';
 import { useAudio } from '../hooks/useAudio';
 import { isStandaloneIOS, useSpeech } from '../hooks/useSpeech';
+import { unlockAudio } from '../lib/audioCache';
+import { markKey, type Flag, type Marks, type VerseMark } from '../lib/marks';
+import VerseMarks from './VerseMarks';
 
 interface Props {
   meta: Meta;
@@ -22,7 +25,10 @@ interface Props {
   onRepeat: (v: 1 | 3 | 5) => void;
   tempo: number;
   onTempo: (t: number) => void;
-  onHifz: (surah: number, from: number, to: number) => void;
+  onHifz: (surah: number, from: number, to: number, autoStart?: boolean) => void;
+  marks: Marks;
+  onFlag: (key: string, flag: Flag) => void;
+  onNote: (key: string, text: string) => void;
   verseStats: Record<string, VerseStat>;
   onVerseStat: (key: string, stat: VerseStat) => void;
 }
@@ -173,6 +179,8 @@ export default function Recitation(p: Props) {
   // --- Actions (stables : les versets ne sont redessinés que si leurs propres données changent) --------------------
   const act = useRef({ verses, cfg, statuses, audio, speech, surahNum });
   act.current = { verses, cfg, statuses, audio, speech, surahNum };
+  const onHifzRef = useRef(p.onHifz);
+  onHifzRef.current = p.onHifz;
 
   /** Démarre la récitation vocale d'un verset ou d'une suite ; `fromWord` reprend au mot k de la même suite. */
   const startVoice = useCallback((from: number, to: number, fromWord = 0) => {
@@ -210,6 +218,18 @@ export default function Recitation(p: Props) {
     a.audio.playVerses(a.surahNum, verseNums);
   }, []);
   const onPlayVerse = useCallback((n: number) => playVerses([n]), [playVerses]);
+  // « Répéter » : ouvre le module de mémorisation sur ce verset et le lance. Le son est débloqué ici, pendant l'appui
+  // (iOS l'exige), avant de changer d'onglet.
+  const onRepeat = useCallback(
+    (n: number) => {
+      const a = act.current;
+      a.speech.stop();
+      a.audio.stop();
+      unlockAudio();
+      onHifzRef.current(a.surahNum, n, n, true);
+    },
+    [],
+  );
 
   /** « Aller au verset » : défilement vers le verset, avec un bref halo pour le repérer. */
   const jumpTo = (n: number) => {
@@ -353,6 +373,11 @@ export default function Recitation(p: Props) {
           listening={speech.listening && slices.has(v.n)}
           voiceSupported={speech.supported}
           onPlay={onPlayVerse}
+          onRepeat={onRepeat}
+          mark={p.marks[markKey(surahNum, v.n)]}
+          vkey={markKey(surahNum, v.n)}
+          onFlag={p.onFlag}
+          onNote={p.onNote}
           onVoiceStart={onVerseVoice}
           onVoiceStop={stopVoice}
           onWordTap={onWordTap}
@@ -417,6 +442,11 @@ interface BlockProps {
   listening: boolean;
   voiceSupported: boolean;
   onPlay: (n: number) => void;
+  onRepeat: (n: number) => void;
+  mark?: VerseMark;
+  vkey: string;
+  onFlag: (key: string, flag: Flag) => void;
+  onNote: (key: string, text: string) => void;
   onVoiceStart: (n: number) => void;
   onVoiceStop: () => void;
   onWordTap: (n: number, idx: number) => void;
@@ -448,6 +478,7 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
               </span>
             )}
             <button className="verse-play-btn" onClick={() => p.onPlay(v.n)}>▶ Écouter</button>
+            <button className="verse-play-btn" onClick={() => p.onRepeat(v.n)} title="Répéter ce verset avec le récitateur (module Hifz)">🔁 Répéter</button>
             {p.listening ? (
               <button className="verse-play-btn voice-on" onClick={p.onVoiceStop}>⏹ Terminer</button>
             ) : (
@@ -462,6 +493,8 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
             )}
           </div>
         </div>
+
+        <VerseMarks vkey={p.vkey} mark={p.mark} onFlag={p.onFlag} onNote={p.onNote} />
 
         <div className="arabic-text" lang="ar" dir="rtl">
           {segments.map((s, i) => {

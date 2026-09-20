@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Reciter } from '../types';
 import { ayahUrl } from './useAudio';
-import { audioBlobUrl, prefetchAudio } from '../lib/audioCache';
+import { audioBlobUrl, prefetchAudio, sharedAudio, unlockAudio } from '../lib/audioCache';
 import { pauseMs, skipVerse, stepAt, type PauseMode } from '../lib/hifzPlan';
 import { estimateStarts, wordAt, type VerseTimings } from '../lib/timing';
 
@@ -34,9 +34,6 @@ export interface HifzState {
 
 const INITIAL: HifzState = { status: 'idle', verse: null, verseRep: 0, groupRep: 0, word: -1, progress: 0, gapLeftMs: 0, gapTotalMs: 0, synced: false, error: null };
 
-/** Son muet de 0 s : lu au premier appui pour que iOS autorise la suite (il exige un geste de l'utilisateur). */
-const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 function applyRate(a: HTMLAudioElement, rate: number) {
@@ -54,7 +51,7 @@ function applyRate(a: HTMLAudioElement, rate: number) {
  */
 export function useHifz(reciter: Reciter | undefined, surah: number, verses: HifzVerse[], cfg: HifzConfig, timings: VerseTimings | null) {
   const [state, setState] = useState<HifzState>(INITIAL);
-  const el = useRef<HTMLAudioElement | null>(null);
+  const el = useRef<HTMLAudioElement | null>(null); // élément partagé (voir audioCache)
   const run = useRef(0); // invalide les lectures obsolètes
   const paused = useRef(false);
   const pausedFrom = useRef<'playing' | 'gap' | 'loading'>('playing');
@@ -199,14 +196,9 @@ export function useHifz(reciter: Reciter | undefined, surah: number, verses: Hif
 
   /** À appeler directement depuis un appui (iOS n'autorise le son qu'à cette condition). */
   const play = useCallback(() => {
-    if (!el.current) {
-      el.current = new Audio();
-      el.current.preload = 'auto';
-    }
+    el.current = sharedAudio();
     if (statusRef.current === 'paused') return resume();
-    const a = el.current;
-    a.src = SILENT;
-    a.play().catch(() => {});
+    unlockAudio();
     runFrom(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runFrom]);

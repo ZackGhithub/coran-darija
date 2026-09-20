@@ -5,8 +5,11 @@ import { normalizeArabic, splitVerse, tokenizeVerse } from '../lib/arabic';
 import { firstLetters, maskFor, type HideMode } from '../lib/mask';
 import { loadTimings, translitToWord, translitTokens, type VerseTimings } from '../lib/timing';
 import { totalSteps, stepsPerGroup, type PauseMode } from '../lib/hifzPlan';
+import { listBy, markKey, nextToLearn, totals, type Flag, type Marks, type VerseMark } from '../lib/marks';
+import { unlockAudio } from '../lib/audioCache';
 import { useHifz, type HifzConfig } from '../hooks/useHifz';
 import { usePersisted } from '../lib/storage';
+import VerseMarks from './VerseMarks';
 
 export interface HifzSettings {
   verseRepeat: number;
@@ -16,9 +19,19 @@ export interface HifzSettings {
   hideMode: HideMode; // masquer le texte pour réciter de mémoire
   hideFrom: number; // à partir de la lecture n°
   hideListen: boolean; // aussi pendant que le récitateur lit
+  hideTranslit: boolean; // masquer aussi la translittération (par défaut elle reste visible : c'est le « sous-titre »)
 }
 
-export const DEFAULT_HIFZ: HifzSettings = { verseRepeat: 3, groupRepeat: 1, pause: 'verse', showTranslit: true, hideMode: 'none', hideFrom: 2, hideListen: true };
+export const DEFAULT_HIFZ: HifzSettings = {
+  verseRepeat: 3,
+  groupRepeat: 1,
+  pause: 'verse',
+  showTranslit: true,
+  hideMode: 'none',
+  hideFrom: 2,
+  hideListen: true,
+  hideTranslit: false,
+};
 export const TEMPOS = [0.5, 0.6, 0.75, 0.9, 1, 1.15, 1.25] as const;
 
 const PAUSES: { id: PauseMode; label: string; hint: string }[] = [
@@ -29,6 +42,34 @@ const PAUSES: { id: PauseMode; label: string; hint: string }[] = [
   { id: 'verse', label: 'Durée du verset', hint: 'Le temps de répéter à voix haute après le récitateur' },
 ];
 
+/** Méthodes prêtes à l'emploi : un choix simple au lieu de sept réglages à comprendre. */
+const PRESETS = [
+  {
+    id: 'learn',
+    icon: '📖',
+    title: 'Apprendre',
+    text: 'Chaque verset est lu 3 fois, lentement, texte visible, avec un temps pour le répéter.',
+    s: { verseRepeat: 3, groupRepeat: 1, pause: 'verse', hideMode: 'none', hideFrom: 2, hideListen: true } as const,
+    tempo: 0.75,
+  },
+  {
+    id: 'consolidate',
+    icon: '🧠',
+    title: 'Consolider',
+    text: 'Le texte se réduit aux premières lettres dès la 2e lecture, et on repasse 2 fois sur le groupe.',
+    s: { verseRepeat: 3, groupRepeat: 2, pause: 'verse', hideMode: 'letters', hideFrom: 2, hideListen: true } as const,
+    tempo: 1,
+  },
+  {
+    id: 'test',
+    icon: '🎯',
+    title: 'Tester de mémoire',
+    text: 'Le texte est caché pendant que vous récitez, et réapparaît quand le récitateur lit pour vous corriger.',
+    s: { verseRepeat: 2, groupRepeat: 1, pause: 'verse', hideMode: 'hidden', hideFrom: 1, hideListen: false } as const,
+    tempo: 1,
+  },
+] as const;
+
 interface Props {
   meta: Meta;
   reciterId: string;
@@ -37,8 +78,13 @@ interface Props {
   onTempo: (t: number) => void;
   settings: HifzSettings;
   onSettings: (s: HifzSettings) => void;
-  /** Sélection venue de l'écran Récitation (bouton « Mémoriser ») */
-  preset: { surah: number; from: number; to: number; nonce: number } | null;
+  /** Sélection venue d'ailleurs (bouton « Répéter » d'un verset) ; `autoStart` lance la lecture tout de suite. */
+  preset: { surah: number; from: number; to: number; nonce: number; autoStart?: boolean } | null;
+  marks: Marks;
+  onFlag: (key: string, flag: Flag) => void;
+  onFlags: (keys: string[], flag: Flag, value: boolean) => void;
+  onNote: (key: string, text: string) => void;
+  onOpen: (surah: number, verse: number) => void;
 }
 
 interface Sel {
@@ -48,6 +94,7 @@ interface Sel {
 }
 
 const fmtTempo = (t: number) => `${String(t).replace('.', ',')}×`;
+const HIDE_LABEL: Record<HideMode, string> = { none: 'texte visible', letters: 'premières lettres', hidden: 'texte masqué' };
 
 export default function Hifz(p: Props) {
   const { meta } = p;
@@ -56,13 +103,20 @@ export default function Hifz(p: Props) {
   const [timings, setTimings] = useState<VerseTimings | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [revealed, setRevealed] = useState<Set<number>>(new Set()); // versets dévoilés d'un toucher
+  const [tempoOpen, setTempoOpen] = useState(false);
+  const [doneDismissed, setDoneDismissed] = useState(false);
+  const [pendingStart, setPendingStart] = useState<Sel | null>(null);
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
   const surah = meta.surahs[sel.surah - 1];
   const enriched = useMemo(() => getEnriched(sel.surah), [sel.surah]);
 
+  // Sélection imposée depuis un autre écran
   useEffect(() => {
-    if (p.preset) setSel({ surah: p.preset.surah, from: p.preset.from, to: p.preset.to });
+    if (!p.preset) return;
+    const s = { surah: p.preset.surah, from: p.preset.from, to: p.preset.to };
+    setSel(s);
+    if (p.preset.autoStart) setPendingStart(s);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.preset?.nonce]);
 
@@ -105,6 +159,9 @@ export default function Hifz(p: Props) {
   useEffect(() => {
     setRevealed(new Set());
   }, [state.verse, state.verseRep]);
+  useEffect(() => {
+    if (state.status !== 'done') setDoneDismissed(false);
+  }, [state.status]);
 
   const curIndex = state.verse == null ? null : group.findIndex((g) => g.n === state.verse);
   const hideOpts = { mode: p.settings.hideMode, hideFrom: p.settings.hideFrom, hideListen: p.settings.hideListen, verseRepeat: p.settings.verseRepeat };
@@ -127,6 +184,15 @@ export default function Hifz(p: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel.surah, from, to, reciter.id]);
 
+  // Lecture demandée depuis un autre écran, une fois la sélection chargée
+  useEffect(() => {
+    if (!pendingStart || !verses || !group.length) return;
+    if (sel.surah !== pendingStart.surah || from !== pendingStart.from || to !== pendingStart.to) return;
+    setPendingStart(null);
+    player.play();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingStart, verses, group.length, sel.surah, from, to]);
+
   // La page suit le verset lu
   useEffect(() => {
     if (state.verse != null && (state.status === 'playing' || state.status === 'loading')) {
@@ -141,15 +207,64 @@ export default function Hifz(p: Props) {
   const perGroup = stepsPerGroup(plan);
   const synced = !!reciter.qcId;
 
+  // Progression personnelle
+  const tot = useMemo(() => totals(p.marks, meta.surahs), [p.marks, meta.surahs]);
+  const next = useMemo(() => nextToLearn(p.marks, meta.surahs, sel.surah), [p.marks, meta.surahs, sel.surah]);
+  const favs = useMemo(() => listBy(p.marks, 'f'), [p.marks]);
+  const notes = useMemo(() => listBy(p.marks, 'n'), [p.marks]);
+
+  // Méthode active (ou « personnalisée » si les réglages ont été ajustés à la main)
+  const activePreset = PRESETS.find(
+    (x) =>
+      x.tempo === p.tempo &&
+      x.s.verseRepeat === p.settings.verseRepeat &&
+      x.s.groupRepeat === p.settings.groupRepeat &&
+      x.s.pause === p.settings.pause &&
+      x.s.hideMode === p.settings.hideMode &&
+      x.s.hideFrom === p.settings.hideFrom &&
+      x.s.hideListen === p.settings.hideListen,
+  );
+  const applyPreset = (id: (typeof PRESETS)[number]['id']) => {
+    const x = PRESETS.find((y) => y.id === id)!;
+    p.onSettings({ ...p.settings, ...x.s });
+    p.onTempo(x.tempo);
+  };
+
+  const notMemorized = group.filter((g) => !p.marks[markKey(sel.surah, g.n)]?.m);
+  const surahName = (n: number) => meta.surahs[n - 1].fr;
+  const goSession = (s: Sel, start = false) => {
+    if (start) unlockAudio(); // débloque le son pendant l'appui (iOS)
+    setSel(s);
+    if (start) setPendingStart(s);
+    document.getElementById('hifz-session')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <section className={`tab-content fade-in ${busy || state.status === 'done' ? 'has-voice-bar' : ''}`}>
-      <div className="guide-card hifz-card">
-        <h2 className="guide-title">🔁 Mémorisation (Hifz)</h2>
-        <p className="muted">
-          Choisissez un verset ou un groupe de versets : le récitateur les répète autant de fois que vous voulez, à la vitesse que vous voulez,
-          et le texte est surligné au rythme de la voix.
-        </p>
+      {/* ------- Où j'en suis ------- */}
+      <div className="guide-card hifz-hub">
+        <h2 className="guide-title">🧭 Ma mémorisation</h2>
+        <div className="stat-row">
+          <div className="stat"><strong>{tot.verses}</strong><span>verset{tot.verses > 1 ? 's' : ''} ✅</span></div>
+          <div className="stat"><strong>{tot.complete}</strong><span>sourate{tot.complete > 1 ? 's' : ''} complète{tot.complete > 1 ? 's' : ''}</span></div>
+          <div className="stat"><strong>{tot.favorites}</strong><span>♥ favori{tot.favorites > 1 ? 's' : ''}</span></div>
+          <div className="stat"><strong>{tot.notes}</strong><span>📝 note{tot.notes > 1 ? 's' : ''}</span></div>
+        </div>
+        {next ? (
+          <button className="btn btn-primary hub-continue" onClick={() => goSession(next, true)}>
+            ▶ Continuer : {surahName(next.surah)}, {next.from === next.to ? `verset ${next.from}` : `versets ${next.from} à ${next.to}`}
+          </button>
+        ) : (
+          <p className="voice-perfect">✓ Tous les versets sont marqués comme mémorisés. Mā shā’ Allāh !</p>
+        )}
+        <p className="hifz-note">Cochez « ✅ Mémorisé » sur un verset (ici ou dans Récitation) pour suivre où vous en êtes ; « Continuer » propose la suite.</p>
+      </div>
 
+      {/* ------- Session : versets → méthode → lancer ------- */}
+      <div className="guide-card hifz-card" id="hifz-session">
+        <h2 className="guide-title">🔁 Nouvelle session</h2>
+
+        <h3 className="hifz-h">1 · Quels versets ?</h3>
         <div className="hifz-grid">
           <label className="range-field">
             <span>Sourate</span>
@@ -179,83 +294,119 @@ export default function Hifz(p: Props) {
           <button className="btn-action-compact" onClick={() => setSel({ surah: sel.surah, from: 1, to: surah.verses })}>Toute la sourate</button>
         </div>
 
-        <h3 className="hifz-h">Répétition</h3>
-        <div className="hifz-grid">
-          <Stepper label="Chaque verset répété" value={p.settings.verseRepeat} min={1} max={99} suffix="×" onChange={(v) => setSettings({ verseRepeat: v })} />
-          <Stepper label="Le groupe répété" value={p.settings.groupRepeat} min={1} max={99} suffix="×" infinite onChange={(v) => setSettings({ groupRepeat: v })} />
-        </div>
-
-        <h3 className="hifz-h">Pause entre les lectures</h3>
-        <div className="chips" role="radiogroup" aria-label="Pause entre les lectures">
-          {PAUSES.map((o) => (
-            <button key={o.id} role="radio" aria-checked={p.settings.pause === o.id} className={`chip ${p.settings.pause === o.id ? 'on' : ''}`} onClick={() => setSettings({ pause: o.id })} title={o.hint || undefined}>
-              {o.label}
+        <h3 className="hifz-h">2 · Quelle méthode ?</h3>
+        <div className="preset-list" role="radiogroup" aria-label="Méthode de mémorisation">
+          {PRESETS.map((x) => (
+            <button key={x.id} role="radio" aria-checked={activePreset?.id === x.id} className={`preset ${activePreset?.id === x.id ? 'on' : ''}`} onClick={() => applyPreset(x.id)}>
+              <span className="preset-title"><span aria-hidden="true">{x.icon}</span> {x.title}</span>
+              <span className="preset-text">{x.text}</span>
             </button>
           ))}
         </div>
-        {p.settings.pause === 'verse' && <p className="hifz-note">Après chaque lecture, silence de la durée du verset : c&apos;est à vous de le répéter.</p>}
+        {!activePreset && <p className="hifz-note">Méthode personnalisée (réglages avancés modifiés).</p>}
 
-        <h3 className="hifz-h">Tempo de la récitation</h3>
-        <div className="chips" role="radiogroup" aria-label="Vitesse de la récitation">
-          {TEMPOS.map((t) => (
-            <button key={t} role="radio" aria-checked={p.tempo === t} className={`chip ${p.tempo === t ? 'on' : ''}`} onClick={() => p.onTempo(t)}>
-              {fmtTempo(t)}
-            </button>
-          ))}
+        <details className="hifz-adv">
+          <summary>⚙ Réglages avancés</summary>
+
+          <h3 className="hifz-h">Répétition</h3>
+          <div className="hifz-grid">
+            <Stepper label="Chaque verset répété" value={p.settings.verseRepeat} min={1} max={99} suffix="×" onChange={(v) => setSettings({ verseRepeat: v })} />
+            <Stepper label="Le groupe répété" value={p.settings.groupRepeat} min={1} max={99} suffix="×" infinite onChange={(v) => setSettings({ groupRepeat: v })} />
+          </div>
+
+          <h3 className="hifz-h">Pause entre les lectures</h3>
+          <div className="chips" role="radiogroup" aria-label="Pause entre les lectures">
+            {PAUSES.map((o) => (
+              <button key={o.id} role="radio" aria-checked={p.settings.pause === o.id} className={`chip ${p.settings.pause === o.id ? 'on' : ''}`} onClick={() => setSettings({ pause: o.id })} title={o.hint || undefined}>
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {p.settings.pause === 'verse' && <p className="hifz-note">Après chaque lecture, silence de la durée du verset : c&apos;est à vous de le répéter.</p>}
+
+          <h3 className="hifz-h">Tempo de la récitation</h3>
+          <TempoChips value={p.tempo} onChange={p.onTempo} />
+          <p className="hifz-note">Ralentir garde la voix naturelle. Vous pouvez aussi changer le tempo pendant la lecture (bouton ⏱).</p>
+
+          <h3 className="hifz-h">Réciter de mémoire (masquer le texte)</h3>
+          <div className="chips" role="radiogroup" aria-label="Masquage du texte">
+            {([['none', 'Texte visible'], ['letters', 'Premières lettres'], ['hidden', 'Masqué']] as const).map(([id, label]) => (
+              <button key={id} role="radio" aria-checked={p.settings.hideMode === id} className={`chip ${p.settings.hideMode === id ? 'on' : ''}`} onClick={() => setSettings({ hideMode: id })}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {p.settings.hideMode !== 'none' && (
+            <>
+              <div className="hifz-grid">
+                <Stepper label="Masquer à partir de la lecture n°" value={Math.min(p.settings.hideFrom, p.settings.verseRepeat)} min={1} max={p.settings.verseRepeat} suffix="" onChange={(v) => setSettings({ hideFrom: v })} />
+              </div>
+              <label className="hifz-check">
+                <input type="checkbox" checked={p.settings.hideListen} onChange={(e) => setSettings({ hideListen: e.target.checked })} />
+                Masquer aussi pendant que le récitateur lit
+              </label>
+              <label className="hifz-check">
+                <input type="checkbox" checked={p.settings.hideTranslit} onChange={(e) => setSettings({ hideTranslit: e.target.checked })} />
+                Masquer aussi la translittération (sinon elle reste comme sous-titre)
+              </label>
+              <p className="hifz-note">Touchez un verset pour le dévoiler, ou mettez en pause : tout se dévoile.</p>
+            </>
+          )}
+
+          <h3 className="hifz-h">Récitateur</h3>
+          <select className="surah-select reciter-select" value={reciter.id} onChange={(e) => p.onReciter(e.target.value)} aria-label="Choisir le récitateur">
+            {meta.reciters.map((r) => (
+              <option key={r.id} value={r.id}>{r.qcId ? '● ' : '○ '}{r.name}</option>
+            ))}
+          </select>
+          <p className="hifz-note">
+            {synced
+              ? '● Surlignage synchronisé sur la voix (horodatages réels de chaque mot).'
+              : '○ Surlignage estimé : réparti selon la longueur des mots, donc approximatif. Choisissez un récitateur ● pour une synchronisation exacte.'}
+          </p>
+
+          <label className="hifz-check">
+            <input type="checkbox" checked={p.settings.showTranslit} onChange={(e) => setSettings({ showTranslit: e.target.checked })} />
+            Afficher la translittération quand elle existe
+          </label>
+        </details>
+
+        <div className="launch">
+          <p className="launch-recap">
+            {group.length} verset{group.length > 1 ? 's' : ''} · chacun {p.settings.verseRepeat}× · tempo {fmtTempo(p.tempo)} · {HIDE_LABEL[p.settings.hideMode]}
+          </p>
+          {busy ? (
+            <button className="btn launch-btn" onClick={player.stop}>⏹ Arrêter la session</button>
+          ) : (
+            <button className="btn btn-primary launch-btn" onClick={player.play} disabled={!group.length}>▶ Lancer la session</button>
+          )}
         </div>
-        <p className="hifz-note">Ralentir garde la voix naturelle (la hauteur ne change pas). Commencez lentement, accélérez quand le verset est acquis.</p>
-
-        <h3 className="hifz-h">Réciter de mémoire (masquer le texte)</h3>
-        <div className="chips" role="radiogroup" aria-label="Masquage du texte">
-          {([['none', 'Texte visible'], ['letters', 'Premières lettres'], ['hidden', 'Masqué']] as const).map(([id, label]) => (
-            <button key={id} role="radio" aria-checked={p.settings.hideMode === id} className={`chip ${p.settings.hideMode === id ? 'on' : ''}`} onClick={() => setSettings({ hideMode: id })}>
-              {label}
-            </button>
-          ))}
-        </div>
-        {p.settings.hideMode !== 'none' && (
-          <>
-            <div className="hifz-grid">
-              <Stepper label="Masquer à partir de la lecture n°" value={Math.min(p.settings.hideFrom, p.settings.verseRepeat)} min={1} max={p.settings.verseRepeat} suffix="" onChange={(v) => setSettings({ hideFrom: v })} />
-            </div>
-            <label className="hifz-check">
-              <input type="checkbox" checked={p.settings.hideListen} onChange={(e) => setSettings({ hideListen: e.target.checked })} />
-              Masquer aussi pendant que le récitateur lit
-            </label>
-            <p className="hifz-note">
-              Les premières lectures restent visibles pour apprendre ; ensuite le texte se cache pour réciter de mémoire. Touchez un verset pour le dévoiler,
-              ou mettez en pause : tout se dévoile.
-            </p>
-          </>
-        )}
-
-        <h3 className="hifz-h">Récitateur</h3>
-        <select className="surah-select reciter-select" value={reciter.id} onChange={(e) => p.onReciter(e.target.value)} aria-label="Choisir le récitateur">
-          {meta.reciters.map((r) => (
-            <option key={r.id} value={r.id}>{r.qcId ? '● ' : '○ '}{r.name}</option>
-          ))}
-        </select>
-        <p className="hifz-note">
-          {synced
-            ? '● Surlignage synchronisé sur la voix (horodatages réels de chaque mot).'
-            : '○ Surlignage estimé : réparti selon la longueur des mots, donc approximatif. Choisissez un récitateur ● pour une synchronisation exacte.'}
-        </p>
-
-        <label className="hifz-check">
-          <input type="checkbox" checked={p.settings.showTranslit} onChange={(e) => setSettings({ showTranslit: e.target.checked })} />
-          Afficher la translittération quand elle existe
-        </label>
       </div>
 
       {loadError && <div className="notice notice-error" role="alert">Impossible de charger la sourate. Vérifiez votre connexion.</div>}
       {!verses && !loadError && <div className="loading">Chargement…</div>}
 
+      {state.status === 'done' && notMemorized.length > 0 && !doneDismissed && (
+        <div className="notice done-card" role="status">
+          <strong>✓ Session terminée.</strong> Marquer {notMemorized.length > 1 ? `ces ${notMemorized.length} versets` : 'ce verset'} comme mémorisé{notMemorized.length > 1 ? 's' : ''} ?
+          <span className="done-actions">
+            <button className="btn btn-primary" onClick={() => { p.onFlags(notMemorized.map((g) => markKey(sel.surah, g.n)), 'm', true); setDoneDismissed(true); }}>✅ Oui, marquer</button>
+            <button className="btn" onClick={() => setDoneDismissed(true)}>Pas encore</button>
+          </span>
+        </div>
+      )}
+
       {group.map(({ verse, n, words }, i) => (
         <HifzVerse
           key={n}
           mask={maskOf(i, n)}
+          hideTranslit={p.settings.hideTranslit}
           onToggle={toggleReveal}
           verse={verse}
+          vkey={markKey(sel.surah, n)}
+          mark={p.marks[markKey(sel.surah, n)]}
+          onFlag={p.onFlag}
+          onNote={p.onNote}
           wordCount={words.length}
           enriched={p.settings.showTranslit ? enriched?.get(n) : undefined}
           active={state.verse === n && busy}
@@ -264,6 +415,40 @@ export default function Hifz(p: Props) {
         />
       ))}
 
+      {/* ------- Favoris et notes ------- */}
+      {favs.length > 0 && (
+        <div className="guide-card">
+          <h3 className="guide-title">♥ Mes favoris ({favs.length})</h3>
+          <ul className="mark-list">
+            {favs.map((f) => (
+              <li key={`${f.surah}:${f.verse}`}>
+                <span>{surahName(f.surah)} · verset {f.verse}</span>
+                <span className="mark-list-actions">
+                  <button className="link-btn" onClick={() => p.onOpen(f.surah, f.verse)}>Lire</button>
+                  <button className="link-btn" onClick={() => goSession({ surah: f.surah, from: f.verse, to: f.verse })}>🔁 Mémoriser</button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {notes.length > 0 && (
+        <div className="guide-card">
+          <h3 className="guide-title">📝 Mes notes ({notes.length})</h3>
+          <ul className="mark-list">
+            {notes.map((f) => (
+              <li key={`${f.surah}:${f.verse}`} className="mark-note-item">
+                <span><strong>{surahName(f.surah)} · verset {f.verse}</strong><br /><span className="muted">{f.mark.n}</span></span>
+                <span className="mark-list-actions">
+                  <button className="link-btn" onClick={() => p.onOpen(f.surah, f.verse)}>Lire</button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* ------- Barre de lecture ------- */}
       <div className="voice-bar hifz-bar" role="status" aria-live="polite">
         <div className="voice-bar-row">
           <span className="voice-bar-state">
@@ -281,7 +466,6 @@ export default function Hifz(p: Props) {
               {p.settings.groupRepeat === 0 ? ' · boucle sans fin' : p.settings.groupRepeat > 1 ? ` · passage ${state.groupRep}/${p.settings.groupRepeat}` : ''}
             </span>
           )}
-          <span className="muted">{p.tempo !== 1 ? fmtTempo(p.tempo) : ''}</span>
           {total !== null && state.status === 'idle' && <span className="muted">{total} lectures au total</span>}
           {total === null && state.status === 'idle' && <span className="muted">{perGroup} lectures par passage, sans fin</span>}
         </div>
@@ -293,6 +477,12 @@ export default function Hifz(p: Props) {
         {state.status === 'error' && state.error && <div className="voice-error">{state.error}</div>}
         {busy && !state.synced && state.word >= 0 && !synced && <div className="voice-hint">Surlignage estimé (récitateur sans horodatage exact).</div>}
 
+        {tempoOpen && (
+          <div className="tempo-pop" role="dialog" aria-label="Tempo de la récitation">
+            <TempoChips value={p.tempo} onChange={(t) => { p.onTempo(t); setTempoOpen(false); }} />
+          </div>
+        )}
+
         <div className="transport">
           <button className="btn" onClick={player.prev} disabled={!busy} aria-label="Verset précédent">⏮</button>
           {state.status === 'playing' || state.status === 'gap' || state.status === 'loading' ? (
@@ -303,10 +493,25 @@ export default function Hifz(p: Props) {
             <button className="btn btn-primary transport-main" onClick={player.play} disabled={!group.length}>▶ Lecture</button>
           )}
           <button className="btn" onClick={player.next} disabled={!busy} aria-label="Verset suivant">⏭</button>
+          <button className={`btn tempo-btn ${tempoOpen ? 'on' : ''}`} onClick={() => setTempoOpen((o) => !o)} aria-expanded={tempoOpen} aria-label={`Tempo, actuellement ${fmtTempo(p.tempo)}`}>
+            ⏱ {fmtTempo(p.tempo)}
+          </button>
           <button className="btn" onClick={player.stop} disabled={!busy && state.status !== 'done'} aria-label="Arrêter">⏹</button>
         </div>
       </div>
     </section>
+  );
+}
+
+function TempoChips(p: { value: number; onChange: (t: number) => void }) {
+  return (
+    <div className="chips" role="radiogroup" aria-label="Vitesse de la récitation">
+      {TEMPOS.map((t) => (
+        <button key={t} role="radio" aria-checked={p.value === t} className={`chip ${p.value === t ? 'on' : ''}`} onClick={() => p.onChange(t)}>
+          {fmtTempo(t)}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -330,7 +535,12 @@ function Stepper(p: { label: string; value: number; min: number; max: number; su
 interface VerseProps {
   verse: Verse;
   mask: HideMode;
+  hideTranslit: boolean;
   onToggle: (n: number) => void;
+  vkey: string;
+  mark?: VerseMark;
+  onFlag: (key: string, flag: Flag) => void;
+  onNote: (key: string, text: string) => void;
   wordCount: number;
   enriched?: Enriched;
   active: boolean;
@@ -339,9 +549,11 @@ interface VerseProps {
 }
 
 /** Un verset du groupe : texte arabe et translittération surlignés au rythme de la voix. */
-const HifzVerse = memo(function HifzVerse({ verse: v, mask, onToggle, wordCount, enriched, active, activeWord, gap }: VerseProps) {
+const HifzVerse = memo(function HifzVerse({ verse: v, mask, hideTranslit, onToggle, vkey, mark, onFlag, onNote, wordCount, enriched, active, activeWord, gap }: VerseProps) {
   const segments = useMemo(() => splitVerse(v.ar), [v.ar]);
   const tokens = useMemo(() => (enriched ? translitTokens(enriched.translit) : []), [enriched]);
+  // La translittération reste affichée comme « sous-titre », même quand le texte arabe est masqué (sauf réglage contraire)
+  const showTranslit = tokens.length > 0 && !(hideTranslit && mask !== 'none');
   return (
     <article
       className={`verse-card hifz-verse ${active ? 'playing' : ''} ${gap ? 'is-gap' : ''} ${mask !== 'none' ? 'is-masked' : ''}`}
@@ -378,7 +590,7 @@ const HifzVerse = memo(function HifzVerse({ verse: v, mask, onToggle, wordCount,
           );
         })}
       </div>
-      {tokens.length > 0 && mask === 'none' && (
+      {showTranslit && (
         <div className="translit-block hifz-translit">
           {tokens.map((t, k) => {
             const w = translitToWord(k, tokens.length, wordCount);
@@ -390,6 +602,10 @@ const HifzVerse = memo(function HifzVerse({ verse: v, mask, onToggle, wordCount,
           })}
         </div>
       )}
+      {/* Les marques ne doivent pas dévoiler le verset quand on touche un bouton */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <VerseMarks vkey={vkey} mark={mark} onFlag={onFlag} onNote={onNote} />
+      </div>
     </article>
   );
 });

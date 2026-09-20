@@ -31,6 +31,33 @@ export function audioBlobUrl(url: string): Promise<string> {
   return p;
 }
 
+/** Son muet de 0 s : lu lors d'un appui pour que iOS autorise ensuite la lecture sans nouvel appui. */
+const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+
+let shared: HTMLAudioElement | null = null;
+
+/**
+ * Un seul élément audio pour tout le module de mémorisation. Sur iOS, seul un élément déjà lancé par un appui de
+ * l'utilisateur peut être relancé ensuite par le code : le partager permet de débloquer le son depuis n'importe quel
+ * bouton (ex : « Répéter » sur un verset), puis de lancer la session après le changement d'écran.
+ */
+export function sharedAudio(): HTMLAudioElement {
+  if (!shared) {
+    shared = new Audio();
+    shared.preload = 'auto';
+  }
+  return shared;
+}
+
+/** À appeler directement depuis un appui : débloque le son pour la suite. */
+export function unlockAudio() {
+  const a = sharedAudio();
+  if (a.paused) {
+    a.src = SILENT;
+    a.play().catch(() => {});
+  }
+}
+
 /** Charge à l'avance (sans attendre le résultat ni signaler d'erreur). */
 export function prefetchAudio(url: string) {
   audioBlobUrl(url).catch(() => {});
