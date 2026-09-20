@@ -1,0 +1,914 @@
+[
+ {
+  "n": 1,
+  "fr": "Al-Fatiha",
+  "ar": "الفاتحة",
+  "tr": "L'Ouverture",
+  "verses": 7,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 2,
+  "fr": "Al-Baqarah",
+  "ar": "البقرة",
+  "tr": "La Vache",
+  "verses": 286,
+  "type": "Médinoise"
+ },
+ {
+  "n": 3,
+  "fr": "Ali 'Imran",
+  "ar": "آل عمران",
+  "tr": "La Famille d'Imran",
+  "verses": 200,
+  "type": "Médinoise"
+ },
+ {
+  "n": 4,
+  "fr": "An-Nisa",
+  "ar": "النساء",
+  "tr": "Les Femmes",
+  "verses": 176,
+  "type": "Médinoise"
+ },
+ {
+  "n": 5,
+  "fr": "Al-Ma'idah",
+  "ar": "المائدة",
+  "tr": "La Table Servie",
+  "verses": 120,
+  "type": "Médinoise"
+ },
+ {
+  "n": 6,
+  "fr": "Al-An'am",
+  "ar": "الأنعام",
+  "tr": "Les Bestiaux",
+  "verses": 165,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 7,
+  "fr": "Al-A'raf",
+  "ar": "الأعراف",
+  "tr": "Les Murailles",
+  "verses": 206,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 8,
+  "fr": "Al-Anfal",
+  "ar": "الأنفال",
+  "tr": "Le Butin",
+  "verses": 75,
+  "type": "Médinoise"
+ },
+ {
+  "n": 9,
+  "fr": "At-Tawbah",
+  "ar": "التوبة",
+  "tr": "Le Repentir",
+  "verses": 129,
+  "type": "Médinoise"
+ },
+ {
+  "n": 10,
+  "fr": "Yunus",
+  "ar": "يونس",
+  "tr": "Jonas",
+  "verses": 109,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 11,
+  "fr": "Hud",
+  "ar": "هود",
+  "tr": "Houd",
+  "verses": 123,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 12,
+  "fr": "Yusuf",
+  "ar": "يوسف",
+  "tr": "Joseph",
+  "verses": 111,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 13,
+  "fr": "Ar-Ra'd",
+  "ar": "الرعد",
+  "tr": "Le Tonnerre",
+  "verses": 43,
+  "type": "Médinoise"
+ },
+ {
+  "n": 14,
+  "fr": "Ibrahim",
+  "ar": "إبراهيم",
+  "tr": "Abraham",
+  "verses": 52,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 15,
+  "fr": "Al-Hijr",
+  "ar": "الحجر",
+  "tr": "Al-Hijr",
+  "verses": 99,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 16,
+  "fr": "An-Nahl",
+  "ar": "النحل",
+  "tr": "Les Abeilles",
+  "verses": 128,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 17,
+  "fr": "Al-Isra",
+  "ar": "الإسراء",
+  "tr": "Le Voyage Nocturne",
+  "verses": 111,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 18,
+  "fr": "Al-Kahf",
+  "ar": "الكهف",
+  "tr": "La Caverne",
+  "verses": 110,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 19,
+  "fr": "Maryam",
+  "ar": "مريم",
+  "tr": "Marie",
+  "verses": 98,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 20,
+  "fr": "Ta-Ha",
+  "ar": "طه",
+  "tr": "Ta-Ha",
+  "verses": 135,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 21,
+  "fr": "Al-Anbiya",
+  "ar": "الأنبياء",
+  "tr": "Les Prophètes",
+  "verses": 112,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 22,
+  "fr": "Al-Hajj",
+  "ar": "الحج",
+  "tr": "Le Pèlerinage",
+  "verses": 78,
+  "type": "Médinoise"
+ },
+ {
+  "n": 23,
+  "fr": "Al-Mu'minun",
+  "ar": "المؤمنون",
+  "tr": "Les Croyants",
+  "verses": 118,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 24,
+  "fr": "An-Nur",
+  "ar": "النور",
+  "tr": "La Lumière",
+  "verses": 64,
+  "type": "Médinoise"
+ },
+ {
+  "n": 25,
+  "fr": "Al-Furqan",
+  "ar": "الفرقان",
+  "tr": "Le Discernement",
+  "verses": 77,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 26,
+  "fr": "Ash-Shu'ara",
+  "ar": "الشعراء",
+  "tr": "Les Poètes",
+  "verses": 227,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 27,
+  "fr": "An-Naml",
+  "ar": "النمل",
+  "tr": "Les Fourmis",
+  "verses": 93,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 28,
+  "fr": "Al-Qasas",
+  "ar": "القصص",
+  "tr": "Le Récit",
+  "verses": 88,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 29,
+  "fr": "Al-'Ankabut",
+  "ar": "العنكبوت",
+  "tr": "L'Araignée",
+  "verses": 69,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 30,
+  "fr": "Ar-Rum",
+  "ar": "الروم",
+  "tr": "Les Romains",
+  "verses": 60,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 31,
+  "fr": "Luqman",
+  "ar": "لقمان",
+  "tr": "Louqman",
+  "verses": 34,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 32,
+  "fr": "As-Sajdah",
+  "ar": "السجدة",
+  "tr": "La Prosternation",
+  "verses": 30,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 33,
+  "fr": "Al-Ahzab",
+  "ar": "الأحزاب",
+  "tr": "Les Coalisés",
+  "verses": 73,
+  "type": "Médinoise"
+ },
+ {
+  "n": 34,
+  "fr": "Saba",
+  "ar": "سبإ",
+  "tr": "Saba",
+  "verses": 54,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 35,
+  "fr": "Fatir",
+  "ar": "فاطر",
+  "tr": "Le Créateur",
+  "verses": 45,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 36,
+  "fr": "Ya-Sin",
+  "ar": "يس",
+  "tr": "Ya-Sin",
+  "verses": 83,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 37,
+  "fr": "As-Saffat",
+  "ar": "الصافات",
+  "tr": "Les Rangés",
+  "verses": 182,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 38,
+  "fr": "Sad",
+  "ar": "ص",
+  "tr": "Sad",
+  "verses": 88,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 39,
+  "fr": "Az-Zumar",
+  "ar": "الزمر",
+  "tr": "Les Groupes",
+  "verses": 75,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 40,
+  "fr": "Ghafir",
+  "ar": "غافر",
+  "tr": "Le Pardonneur",
+  "verses": 85,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 41,
+  "fr": "Fussilat",
+  "ar": "فصلت",
+  "tr": "Les Versets Détaillés",
+  "verses": 54,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 42,
+  "fr": "Ash-Shura",
+  "ar": "الشورى",
+  "tr": "La Consultation",
+  "verses": 53,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 43,
+  "fr": "Az-Zukhruf",
+  "ar": "الزخرف",
+  "tr": "L'Ornement",
+  "verses": 89,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 44,
+  "fr": "Ad-Dukhan",
+  "ar": "الدخان",
+  "tr": "La Fumée",
+  "verses": 59,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 45,
+  "fr": "Al-Jathiyah",
+  "ar": "الجاثية",
+  "tr": "L'Agenouillée",
+  "verses": 37,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 46,
+  "fr": "Al-Ahqaf",
+  "ar": "الأحقاف",
+  "tr": "Al-Ahqaf",
+  "verses": 35,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 47,
+  "fr": "Muhammad",
+  "ar": "محمد",
+  "tr": "Muhammad",
+  "verses": 38,
+  "type": "Médinoise"
+ },
+ {
+  "n": 48,
+  "fr": "Al-Fath",
+  "ar": "الفتح",
+  "tr": "La Victoire Éclatante",
+  "verses": 29,
+  "type": "Médinoise"
+ },
+ {
+  "n": 49,
+  "fr": "Al-Hujurat",
+  "ar": "الحجرات",
+  "tr": "Les Appartements",
+  "verses": 18,
+  "type": "Médinoise"
+ },
+ {
+  "n": 50,
+  "fr": "Qaf",
+  "ar": "ق",
+  "tr": "Qaf",
+  "verses": 45,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 51,
+  "fr": "Adh-Dhariyat",
+  "ar": "الذاريات",
+  "tr": "Qui Éparpillent",
+  "verses": 60,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 52,
+  "fr": "At-Tur",
+  "ar": "الطور",
+  "tr": "Le Mont",
+  "verses": 49,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 53,
+  "fr": "An-Najm",
+  "ar": "النجم",
+  "tr": "L'Étoile",
+  "verses": 62,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 54,
+  "fr": "Al-Qamar",
+  "ar": "القمر",
+  "tr": "La Lune",
+  "verses": 55,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 55,
+  "fr": "Ar-Rahman",
+  "ar": "الرحمن",
+  "tr": "Le Tout Miséricordieux",
+  "verses": 78,
+  "type": "Médinoise"
+ },
+ {
+  "n": 56,
+  "fr": "Al-Waqi'ah",
+  "ar": "الواقعة",
+  "tr": "L'Événement Inéluctable",
+  "verses": 96,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 57,
+  "fr": "Al-Hadid",
+  "ar": "الحديد",
+  "tr": "Le Fer",
+  "verses": 29,
+  "type": "Médinoise"
+ },
+ {
+  "n": 58,
+  "fr": "Al-Mujadilah",
+  "ar": "المجادلة",
+  "tr": "La Discussion",
+  "verses": 22,
+  "type": "Médinoise"
+ },
+ {
+  "n": 59,
+  "fr": "Al-Hashr",
+  "ar": "الحشر",
+  "tr": "L'Exode",
+  "verses": 24,
+  "type": "Médinoise"
+ },
+ {
+  "n": 60,
+  "fr": "Al-Mumtahanah",
+  "ar": "الممتحنة",
+  "tr": "L'Éprouvée",
+  "verses": 13,
+  "type": "Médinoise"
+ },
+ {
+  "n": 61,
+  "fr": "As-Saff",
+  "ar": "الصف",
+  "tr": "Le Rang",
+  "verses": 14,
+  "type": "Médinoise"
+ },
+ {
+  "n": 62,
+  "fr": "Al-Jumu'ah",
+  "ar": "الجمعة",
+  "tr": "Le Vendredi",
+  "verses": 11,
+  "type": "Médinoise"
+ },
+ {
+  "n": 63,
+  "fr": "Al-Munafiqun",
+  "ar": "المنافقون",
+  "tr": "Les Hypocrites",
+  "verses": 11,
+  "type": "Médinoise"
+ },
+ {
+  "n": 64,
+  "fr": "At-Taghabun",
+  "ar": "التغابن",
+  "tr": "La Grande Perte",
+  "verses": 18,
+  "type": "Médinoise"
+ },
+ {
+  "n": 65,
+  "fr": "At-Talaq",
+  "ar": "الطلاق",
+  "tr": "Le Divorce",
+  "verses": 12,
+  "type": "Médinoise"
+ },
+ {
+  "n": 66,
+  "fr": "At-Tahrim",
+  "ar": "التحريم",
+  "tr": "L'Interdiction",
+  "verses": 12,
+  "type": "Médinoise"
+ },
+ {
+  "n": 67,
+  "fr": "Al-Mulk",
+  "ar": "الملك",
+  "tr": "La Royauté",
+  "verses": 30,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 68,
+  "fr": "Al-Qalam",
+  "ar": "القلم",
+  "tr": "La Plume",
+  "verses": 52,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 69,
+  "fr": "Al-Haqqah",
+  "ar": "الحاقة",
+  "tr": "L'Inévitable",
+  "verses": 52,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 70,
+  "fr": "Al-Ma'arij",
+  "ar": "المعارج",
+  "tr": "Les Voies d'Ascension",
+  "verses": 44,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 71,
+  "fr": "Nuh",
+  "ar": "نوح",
+  "tr": "Noé",
+  "verses": 28,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 72,
+  "fr": "Al-Jinn",
+  "ar": "الجن",
+  "tr": "Les Djinns",
+  "verses": 28,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 73,
+  "fr": "Al-Muzzammil",
+  "ar": "المزمل",
+  "tr": "L'Enveloppé",
+  "verses": 20,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 74,
+  "fr": "Al-Muddaththir",
+  "ar": "المدثر",
+  "tr": "Le Revêtu d'un Manteau",
+  "verses": 56,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 75,
+  "fr": "Al-Qiyamah",
+  "ar": "القيامة",
+  "tr": "La Résurrection",
+  "verses": 40,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 76,
+  "fr": "Al-Insan",
+  "ar": "الإنسان",
+  "tr": "L'Homme",
+  "verses": 31,
+  "type": "Médinoise"
+ },
+ {
+  "n": 77,
+  "fr": "Al-Mursalat",
+  "ar": "المرسلات",
+  "tr": "Les Envoyés",
+  "verses": 50,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 78,
+  "fr": "An-Naba",
+  "ar": "النبإ",
+  "tr": "La Nouvelle",
+  "verses": 40,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 79,
+  "fr": "An-Nazi'at",
+  "ar": "النازعات",
+  "tr": "Les Anges qui Arrachent",
+  "verses": 46,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 80,
+  "fr": "'Abasa",
+  "ar": "عبس",
+  "tr": "Il s'est Renfrogné",
+  "verses": 42,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 81,
+  "fr": "At-Takwir",
+  "ar": "التكوير",
+  "tr": "L'Obscurcissement",
+  "verses": 29,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 82,
+  "fr": "Al-Infitar",
+  "ar": "الانفطار",
+  "tr": "La Rupture",
+  "verses": 19,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 83,
+  "fr": "Al-Mutaffifin",
+  "ar": "المطففين",
+  "tr": "Les Fraudeurs",
+  "verses": 36,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 84,
+  "fr": "Al-Inshiqaq",
+  "ar": "الانشقاق",
+  "tr": "La Déchirure",
+  "verses": 25,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 85,
+  "fr": "Al-Buruj",
+  "ar": "البروج",
+  "tr": "Les Constellations",
+  "verses": 22,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 86,
+  "fr": "At-Tariq",
+  "ar": "الطارق",
+  "tr": "L'Astre Nocturne",
+  "verses": 17,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 87,
+  "fr": "Al-A'la",
+  "ar": "الأعلى",
+  "tr": "Le Très-Haut",
+  "verses": 19,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 88,
+  "fr": "Al-Ghashiyah",
+  "ar": "الغاشية",
+  "tr": "L'Enveloppante",
+  "verses": 26,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 89,
+  "fr": "Al-Fajr",
+  "ar": "الفجر",
+  "tr": "L'Aube",
+  "verses": 30,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 90,
+  "fr": "Al-Balad",
+  "ar": "البلد",
+  "tr": "La Cité",
+  "verses": 20,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 91,
+  "fr": "Ash-Shams",
+  "ar": "الشمس",
+  "tr": "Le Soleil",
+  "verses": 15,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 92,
+  "fr": "Al-Layl",
+  "ar": "الليل",
+  "tr": "La Nuit",
+  "verses": 21,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 93,
+  "fr": "Ad-Duha",
+  "ar": "الضحى",
+  "tr": "Le Jour Montant",
+  "verses": 11,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 94,
+  "fr": "Ash-Sharh",
+  "ar": "الشرح",
+  "tr": "L'Ouverture du Cœur",
+  "verses": 8,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 95,
+  "fr": "At-Tin",
+  "ar": "التين",
+  "tr": "Le Figuier",
+  "verses": 8,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 96,
+  "fr": "Al-'Alaq",
+  "ar": "العلق",
+  "tr": "L'Adhérence",
+  "verses": 19,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 97,
+  "fr": "Al-Qadr",
+  "ar": "القدر",
+  "tr": "La Destinée",
+  "verses": 5,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 98,
+  "fr": "Al-Bayyinah",
+  "ar": "البينة",
+  "tr": "La Preuve Évidente",
+  "verses": 8,
+  "type": "Médinoise"
+ },
+ {
+  "n": 99,
+  "fr": "Az-Zalzalah",
+  "ar": "الزلزلة",
+  "tr": "La Secousse",
+  "verses": 8,
+  "type": "Médinoise"
+ },
+ {
+  "n": 100,
+  "fr": "Al-'Adiyat",
+  "ar": "العاديات",
+  "tr": "Les Coursiers",
+  "verses": 11,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 101,
+  "fr": "Al-Qari'ah",
+  "ar": "القارعة",
+  "tr": "Le Fracas",
+  "verses": 11,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 102,
+  "fr": "At-Takathur",
+  "ar": "التكاثر",
+  "tr": "La Course aux Richesses",
+  "verses": 8,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 103,
+  "fr": "Al-'Asr",
+  "ar": "العصر",
+  "tr": "Le Temps",
+  "verses": 3,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 104,
+  "fr": "Al-Humazah",
+  "ar": "الهمزة",
+  "tr": "Le Diffamateur",
+  "verses": 9,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 105,
+  "fr": "Al-Fil",
+  "ar": "الفيل",
+  "tr": "L'Éléphant",
+  "verses": 5,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 106,
+  "fr": "Quraysh",
+  "ar": "قريش",
+  "tr": "Les Quraych",
+  "verses": 4,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 107,
+  "fr": "Al-Ma'un",
+  "ar": "الماعون",
+  "tr": "L'Entraide",
+  "verses": 7,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 108,
+  "fr": "Al-Kawthar",
+  "ar": "الكوثر",
+  "tr": "L'Abondance",
+  "verses": 3,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 109,
+  "fr": "Al-Kafirun",
+  "ar": "الكافرون",
+  "tr": "Les Infidèles",
+  "verses": 6,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 110,
+  "fr": "An-Nasr",
+  "ar": "النصر",
+  "tr": "Le Secours Divin",
+  "verses": 3,
+  "type": "Médinoise"
+ },
+ {
+  "n": 111,
+  "fr": "Al-Masad",
+  "ar": "المسد",
+  "tr": "Les Fibres",
+  "verses": 5,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 112,
+  "fr": "Al-Ikhlas",
+  "ar": "الإخلاص",
+  "tr": "La Sincérité Pure",
+  "verses": 4,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 113,
+  "fr": "Al-Falaq",
+  "ar": "الفلق",
+  "tr": "L'Aube Naissante",
+  "verses": 5,
+  "type": "Mecquoise"
+ },
+ {
+  "n": 114,
+  "fr": "An-Nas",
+  "ar": "الناس",
+  "tr": "Les Hommes",
+  "verses": 6,
+  "type": "Mecquoise"
+ }
+]

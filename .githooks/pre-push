@@ -1,0 +1,3 @@
+#!/bin/sh
+# Bloque le push : arbre complet + identités et messages de tout l'historique.
+node scripts/privacy-check.mjs --all --history || exit 1

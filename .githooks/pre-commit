@@ -1,0 +1,3 @@
+#!/bin/sh
+# Bloque le commit si le contrôle de confidentialité échoue.
+node scripts/privacy-check.mjs --staged || exit 1

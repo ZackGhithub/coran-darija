@@ -1,0 +1,250 @@
+{
+ "1": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    "translit": "Bismi Llâhi r-Ra<span class='char-code'>7</span>mâni r-Ra<span class='char-code'>7</span>îm",
+    "darija": "<strong>B-ism (بسم)</strong> : identique au Darija <em>« b-smi Lah »</em>. <strong>Ra7mân / Ra7îm (رحمان / رحيم)</strong> : racine R-7-M (la miséricorde), qu'on emploie quotidiennement en Darija : <em>« Lah yr7mou »</em>, <em>« fih r-ra7ma »</em>.",
+    "tajwid": "Attention au <strong><span class='char-code'>7</span> (ح)</strong> : c'est un H expiré chaud et doux qui vient du milieu de la gorge, ne le confondez pas avec le هـ (qui vient du fond de la gorge). Marquez bien le prolongement de 2 temps sur <em>Ra7îm</em>.",
+    "fr": "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux."
+   },
+   {
+    "num": 2,
+    "ar": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+    "translit": "Al-<span class='char-code'>7</span>amdou li-Llâhi Rabbi l-<span class='char-code'>3</span>âlamîn",
+    "darija": "<strong>Al-7amd (الحمد)</strong> : omniprésent en Darija (<em>« L-7amdoulillah »</em>, la louange). <strong>Rabb (رب)</strong> : le Maître, l'Éducateur (en Darija : <em>« rabbat l-bayt »</em>, <em>« rabbaw wladhoum »</em>). <strong>3âlamîn (عالمين)</strong> : vient de la racine 3-L-M (le savoir, les mondes créés), comme <em>« kay3lem »</em>.",
+    "tajwid": "<strong>Attention au piège de Darija :</strong> Ne dites pas <em>« l-7amd »</em> avec un soukoun précipité ! Prononcez nettement la damma courte : <em>« Al-7am-dou »</em> (1 temps entier). Le <strong><span class='char-code'>3</span> (ع)</strong> doit être net et profond.",
+    "fr": "Louange à Allah, Seigneur de l'Univers."
+   },
+   {
+    "num": 3,
+    "ar": "الرَّحْمَٰنِ الرَّحِيمِ",
+    "translit": "Ar-Ra<span class='char-code'>7</span>mâni r-Ra<span class='char-code'>7</span>îm",
+    "darija": "Double déclinaison de la miséricorde : <em>Ra7mân</em> (l'immensité de la bonté divine) et <em>Ra7îm</em> (sa continuité envers les croyants). Même racine que <em>« r-ra7ma »</em> en Darija.",
+    "tajwid": "Ne supprimez pas les voyelles brèves de liaison : <em>Ar-Ra7-mâ-ni r-Ra-7îm</em>. Marquez bien les 2 temps (Madd) sur le <em>mâ</em> et 2 à 4 temps à l'arrêt sur <em>7îm</em>.",
+    "fr": "Le Tout Miséricordieux, le Très Miséricordieux."
+   },
+   {
+    "num": 4,
+    "ar": "مَالِكِ يَوْمِ الدِّينِ",
+    "translit": "Mâliki yawmi d-Dîn",
+    "darija": "<strong>Mâlik (مالك)</strong> : le Souverain, le Maître possesseur (en Darija : <em>« moul chi »</em>, <em>« l-malik »</em>). <strong>Yawm (يوم)</strong> : le jour (en Darija : <em>« l-youm »</em>). <strong>Dîn (دين)</strong> : la rétribution, le jugement (en Darija : <em>« d-dine »</em> renvoie à la dette qu'il faut régler).",
+    "tajwid": "Allongez le <em>Mâ</em> de 2 temps. Prononcez la kasra (i) sous le Kâf : <em>« Mâ-li-ki »</em> et non pas <em>« mâlk »</em> comme en Darija !",
+    "fr": "Maître du Jour de la Rétribution."
+   },
+   {
+    "num": 5,
+    "ar": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+    "translit": "Iyyâka na<span class='char-code'>3</span>boudou wa iyyâka nasta<span class='char-code'>3</span>în",
+    "darija": "<strong>Na3boudou (نعبد)</strong> : racine 3-B-D (le culte, l'adoration), en Darija <em>« l-3bada »</em>, <em>« 3abid »</em>. <strong>Nasta3în (نستعين)</strong> : racine 3-W-N (demander l'aide/le secours), exactement comme en Darija <em>« l-3wân »</em>, <em>« 3awnou »</em> !",
+    "tajwid": "Appuyez bien sur la Shadda (double consonne) de <em>Iy-yâka</em> sans la couper. Prononcez les voyelles courtes : <em>na<span class='char-code'>3</span>-bou-dou</em> (ne pas avaler le <em>ou</em> final).",
+    "fr": "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons le secours."
+   },
+   {
+    "num": 6,
+    "ar": "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ",
+    "translit": "Ihdinâ s-sirâta l-mousta<span class='char-code'>9</span>îm",
+    "darija": "<strong>Ihdinâ (اهدنا)</strong> : guide-nous (en Darija : <em>« lah yahdik »</em>). <strong>Sirât (صراط)</strong> : la voie / le chemin. <strong>Mousta9îm (مستقيم)</strong> : racine Q-W-M (l'alignement droit, ce qui est intègre), comme <em>« qam / wqef / 9iyyem »</em>.",
+    "tajwid": "Le <strong>H (هـ)</strong> de <em>Ihdinâ</em> vient du larynx (doux et voilé). Le <strong><span class='char-code'>9</span> (ق)</strong> de <em>mousta9îm</em> est emphatique et guttural : ne le prononcez pas <em>« moustagim »</em> !",
+    "fr": "Guide-nous dans le droit chemin."
+   },
+   {
+    "num": 7,
+    "ar": "صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+    "translit": "Sirâta l-ladhîna an<span class='char-code'>3</span>amta <span class='char-code'>3</span>alayhim, ghayri l-maghdoûbi <span class='char-code'>3</span>alayhim wa lâ d-dâllîn",
+    "darija": "<strong>An3amta (أنعمت)</strong> : racine N-3-M (le bienfait, la faveur divine), comme en Darija <em>« n-ni3ma »</em>. <strong>Ghayr (غير)</strong> : autre que (comme <em>« ghayrou »</em> en Darija). <strong>Dâllîn (الضالين)</strong> : ceux qui s'égarent (en Darija : <em>« dall / tlef »</em>).",
+    "tajwid": "<strong>Interdentale :</strong> Sortez la pointe de la langue sur <em>Al-ladhîna</em> (ذ). <strong>Madd Lazim :</strong> Sur <em>Ad-Dâllîn</em>, l'allongement est obligatoire à <strong>6 temps pleins</strong> avec Shadda appuyée sur le Lâm !",
+    "fr": "Le chemin de ceux que Tu as comblés de bienfaits, non pas de ceux qui ont encouru Ta colère, ni des égarés."
+   }
+  ]
+ },
+ "103": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "وَالْعَصْرِ",
+    "translit": "Wa l-<span class='char-code'>3</span>asr",
+    "darija": "<strong>Al-3asr (العصر)</strong> : le temps qui décline, et le moment bien connu de la prière de l'après-midi en Darija (<em>« l-3ser »</em>).",
+    "tajwid": "Nettoyez le <strong><span class='char-code'>3</span> (ع)</strong>. Ne transformez pas le Sâd (ص) en simple S.",
+    "fr": "Par le Temps !"
+   },
+   {
+    "num": 2,
+    "ar": "إِنَّ الْإِنسَانَ لَفِي خُسْرٍ",
+    "translit": "Inna l-insâna la-fî <span class='char-code'>5</span>ousr",
+    "darija": "<strong>5ousr (خسر)</strong> : la perte, le déclin spirituel (en Darija : <em>« khesra »</em>, <em>« khesrân »</em>).",
+    "tajwid": "Ikhfa sur le Nûn de <em>al-insâna</em>. Le <strong>Khā’ (<span class='char-code'>5</span>)</strong> est plein.",
+    "fr": "L'homme est certes en perdition,"
+   },
+   {
+    "num": 3,
+    "ar": "إِلَّا الَّذِينَ آمَنُوا وَعَمِلُوا الصَّالِحَاتِ وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ",
+    "translit": "Illa l-ladhîna âmanou wa <span class='char-code'>3</span>amilou s-sâli<span class='char-code'>7</span>ât, wa tawâsaw bi-l-<span class='char-code'>7</span>aqqi wa tawâsaw bi-s-sabr",
+    "darija": "<strong>3amilou (عملوا)</strong> : racine 3-M-L (agir, travailler), comme en Darija <em>« l-3amal »</em>. <strong>Tawâsaw (تواصوا)</strong> : se recommander mutuellement (en Darija : <em>« wessâ »</em>, <em>« l-wasiya »</em>). <strong>7aqq & Sabr</strong> : la vérité (<em>« l-7eqq »</em>) et la patience (<em>« s-sber »</em>).",
+    "tajwid": "Interdentale sur <em>al-ladhîna</em>. Rebond puissant sur le Qāf doublé de <em>bi-l-7aqqi</em> à l'arrêt, et Qalqala sur le Bā’ de <em>bi-s-sabr</em>.",
+    "fr": "Sauf ceux qui croient, accomplissent les bonnes œuvres, s'enjoignent mutuellement la vérité et s'enjoignent la patience."
+   }
+  ]
+ },
+ "108": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ",
+    "translit": "Innâ a<span class='char-code'>3</span>taynâka l-kawthar",
+    "darija": "<strong>A3taynâk (أعطيناك)</strong> : racine 3-T-Y (le don). C'est le verbe le plus courant en Darija : <em>« 3tâ »</em>, <em>« 3tini »</em> ! <strong>Al-Kawthar</strong> : l'abondance infinie accordée au Prophète.",
+    "tajwid": "Ghunnah sur <em>In-nâ</em>. Marquez bien le <strong><span class='char-code'>3</span> (ع)</strong> sur <em>a<span class='char-code'>3</span>taynâk</em>. Prononcez le <strong>Thā’ (ث)</strong> interdental sur <em>l-kawthar</em>.",
+    "fr": "Nous t'avons certes accordé l'Abondance."
+   },
+   {
+    "num": 2,
+    "ar": "فَصَلِّ لِرَبِّكَ وَانْحَرْ",
+    "translit": "Fa-salli li-Rabbika wa n-<span class='char-code'>7</span>ar",
+    "darija": "<strong>Salli (صل)</strong> : prie (en Darija : <em>« selli »</em>). <strong>Wan7ar (وانحر)</strong> : immole / sacrifie l'offrande (en Darija le sacrifice est relié à <em>« n7ar / dbe7 »</em>).",
+    "tajwid": "Insistez sur la Shadda du Lâm dans <em>salli</em>. Le <strong><span class='char-code'>7</span> (ح)</strong> de <em>wan7ar</em> est franc et expiré sans racler.",
+    "fr": "Accomplis donc la prière pour ton Seigneur et sacrifie."
+   },
+   {
+    "num": 3,
+    "ar": "إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",
+    "translit": "Inna châni'aka houwa l-abtar",
+    "darija": "<strong>Abtar (الأبتر)</strong> : celui qui est sevré, coupé de toute bénédiction et descendance (en Darija : <em>« mbettr »</em>).",
+    "tajwid": "Ghunnah sur <em>In-na</em>. <strong>Qalqala</strong> légère sur le Bā’ de <em>l-abtar</em>.",
+    "fr": "Celui qui te hait sera certes sans postérité."
+   }
+  ]
+ },
+ "112": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+    "translit": "<span class='char-code'>9</span>oul Houwa Llâhou A<span class='char-code'>7</span>ad",
+    "darija": "<strong>9oul (قل)</strong> : dis ! (en Darija on dit souvent <em>« goul »</em>, mais attention en Coran c'est un Qaf <span class='char-code'>9</span> noble). <strong>A7ad (أحد)</strong> : l'Unique, absolu et indivisible (racine de <em>« wa7ed »</em>).",
+    "tajwid": "Le <strong><span class='char-code'>9</span> (ق)</strong> part du fond du palais. Le <strong><span class='char-code'>7</span> (ح)</strong> est propre et bien détaché. Ne coupez pas le souffle sur <em>Houwa</em>.",
+    "fr": "Dis : Il est Allah, Unique."
+   },
+   {
+    "num": 2,
+    "ar": "اللَّهُ الصَّمَدُ",
+    "translit": "Allâhou s-Samad",
+    "darija": "<strong>As-Samad (الصمد)</strong> : le Maître Parfait vers qui convergent toutes les créatures pour leurs besoins, tandis que Lui se suffit à Lui-même.",
+    "tajwid": "La lettre <strong>Sâd (ص)</strong> est lourde et emphatique. N'arrondissez pas la bouche vers un S ordinaire.",
+    "fr": "Allah, Le Seul à être imploré pour ce que nous désirons."
+   },
+   {
+    "num": 3,
+    "ar": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+    "translit": "Lam yalid wa lam yoûlad",
+    "darija": "<strong>Yalid / Yoûlad (يلد / يولد)</strong> : racine W-L-D (engendrer, enfanter), exactement comme en Darija : <em>« wled »</em>, <em>« wlad »</em>, <em>« drari »</em>.",
+    "tajwid": "<strong>Qalqala (Rebond sonore) :</strong> Le Dâl (د) à la fin de <em>yalid</em> et <em>yoûlad</em> porte un soukoûn : faites-le rebondir légèrement sans ajouter de voyelle !",
+    "fr": "Il n'a jamais engendré, n'a pas été engendré non plus."
+   },
+   {
+    "num": 4,
+    "ar": "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ",
+    "translit": "Wa lam yakoun lahou koufouwan a<span class='char-code'>7</span>ad",
+    "darija": "<strong>Koufou (كفؤ)</strong> : l'égal, l'équivalent. En Darija on retrouve cette idée dans <em>« kif kif »</em> (identique) ou <em>« b7al »</em> : rien ne Lui est comparable.",
+    "tajwid": "<strong>Idgham bila ghunnah :</strong> Le Nûn de <em>yakoun</em> fusionne directement dans le Lâm de <em>lahou</em> : prononcez <em>« wa lam yakul-lahou »</em>. Finissez sur <em>a7ad</em> avec la Qalqala sur le Dâl.",
+    "fr": "Et nul n'est égal à Lui."
+   }
+  ]
+ },
+ "113": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ",
+    "translit": "<span class='char-code'>9</span>oul a<span class='char-code'>3</span>oûdhou bi-Rabbi l-fala<span class='char-code'>9</span>",
+    "darija": "<strong>A3oûdhou (أعوذ)</strong> : je cherche protection/refuge (comme dans <em>« a3oûdhou billah »</em>). <strong>Fala9 (الفلق)</strong> : la fente de l'aube naissante qui brise la nuit (en Darija on dit <em>« flaq »</em> pour fendre/diviser).",
+    "tajwid": "La lettre <strong>Dhāl (ذ)</strong> est interdentale : placez le bout de la langue entre les dents. Rebond de <strong>Qalqala</strong> marqué sur le Qāf final <em>l-fala9</em>.",
+    "fr": "Dis : Je cherche protection auprès du Seigneur de l'aube naissante."
+   },
+   {
+    "num": 2,
+    "ar": "مِن شَرِّ مَا خَلَقَ",
+    "translit": "Min charri mâ <span class='char-code'>5</span>ala<span class='char-code'>9</span>",
+    "darija": "<strong>Charr (شر)</strong> : le mal (en Darija : <em>« cherr »</em>, opposé à <em>« l-khayr »</em>). <strong>5ala9 (خلق)</strong> : Il a créé (en Darija : <em>« l-khalq »</em>, les créatures).",
+    "tajwid": "<strong>Ikhfa :</strong> Dissimulez le Nûn de <em>min</em> avec nasalisation (ghunnah) de 2 temps devant la lettre Chîn. Marquez la <strong>Qalqala</strong> sur le Qāf de <em>5ala9</em>.",
+    "fr": "Contre le mal des êtres qu'Il a créés."
+   },
+   {
+    "num": 3,
+    "ar": "وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ",
+    "translit": "Wa min charri ghâsi<span class='char-code'>9</span>in idhâ wa<span class='char-code'>9</span>ab",
+    "darija": "<strong>Ghâsi9 (غاسق)</strong> : la nuit opaque quand elle s'épaissit. <strong>Wa9aba (وقب)</strong> : quand l'obscurité pénètre et envahit tout.",
+    "tajwid": "Prononcez la voyelle longue de <em>ghâ-</em>. <strong>Qalqala</strong> sur le Bā’ final : <em>wa-qa-ba</em> (rebond sonore net).",
+    "fr": "Contre le mal de l'obscurité quand elle s'approfondit."
+   },
+   {
+    "num": 4,
+    "ar": "وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ",
+    "translit": "Wa min charri n-naffâthâti fî l-<span class='char-code'>3</span>ou<span class='char-code'>9</span>ad",
+    "darija": "<strong>3ou9ad (العقد)</strong> : les nœuds ! En Darija on dit couramment <em>« l-3o9da »</em> pour désigner un nœud ou une complication.",
+    "tajwid": "Double interdentale <strong>Thā’ (ث)</strong> dans <em>naffâthâti</em> (la langue doit toucher les incisives). <strong>Qalqala</strong> sur le Dâl de <em>l-3ou9ad</em>.",
+    "fr": "Contre le mal de celles qui soufflent sur les nœuds."
+   },
+   {
+    "num": 5,
+    "ar": "وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",
+    "translit": "Wa min charri <span class='char-code'>7</span>âsidin idhâ <span class='char-code'>7</span>asad",
+    "darija": "<strong>7âsid / 7asad (حاسد / حسد)</strong> : la jalousie et l'envieux ! Termes quotidiens en Darija : <em>« l-7essad »</em>, <em>« kay7sed »</em>, <em>« l-7sed »</em>.",
+    "tajwid": "Nettoyez le <strong><span class='char-code'>7</span> (ح)</strong> au début de <em>7âsidin</em> et de <em>7asad</em>. Finissez avec la Qalqala sur le Dâl de <em>7asad</em>.",
+    "fr": "Et contre le mal de l'envieux quand il envie."
+   }
+  ]
+ },
+ "114": {
+  "verses": [
+   {
+    "num": 1,
+    "ar": "قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+    "translit": "<span class='char-code'>9</span>oul a<span class='char-code'>3</span>oûdhou bi-Rabbi n-nâs",
+    "darija": "<strong>Nâs (الناس)</strong> : les gens, l'humanité (en Darija c'est exactement le même mot : <em>« n-nâs »</em>).",
+    "tajwid": "<strong>Ghunnah :</strong> Sur le Nûn de <em>an-nâs</em> surmonté d'une Shadda, tenez la résonance nasale pendant 2 pulsations pleines.",
+    "fr": "Dis : Je cherche protection auprès du Seigneur des hommes."
+   },
+   {
+    "num": 2,
+    "ar": "مَلِكِ النَّاسِ",
+    "translit": "Maliki n-nâs",
+    "darija": "<strong>Malik (ملك)</strong> : le Roi suprême de tous les êtres humains (en Darija : <em>« l-malik »</em>).",
+    "tajwid": "Attention à la kasra : <em>Ma-li-ki</em> (ne dites pas <em>malk</em>). Tenez la Ghunnah sur le Nûn de <em>n-nâs</em>.",
+    "fr": "Le Souverain des hommes."
+   },
+   {
+    "num": 3,
+    "ar": "إِلَٰهِ النَّاسِ",
+    "translit": "Ilâhi n-nâs",
+    "darija": "<strong>Ilâh (إله)</strong> : la véritable divinité digne de dévotion et d'amour suprême.",
+    "tajwid": "Allongez le <em>lâ</em> de 2 temps. Le H (هـ) est doux et expiré du fond de la gorge.",
+    "fr": "Le Dieu des hommes."
+   },
+   {
+    "num": 4,
+    "ar": "مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ",
+    "translit": "Min charri l-waswâsi l-<span class='char-code'>5</span>annâs",
+    "darija": "<strong>Waswâs (الوسواس)</strong> : les suggestions trompeuses répétées. En Darija on dit couramment <em>« l-weswâs »</em> ou <em>« mwesswes »</em> !",
+    "tajwid": "Le <strong>Khā’ (<span class='char-code'>5</span>)</strong> de <em>al-5annâs</em> est raclé. Marquez la Ghunnah sur le Nûn doublé.",
+    "fr": "Contre le mal du mauvais conseiller furtif."
+   },
+   {
+    "num": 5,
+    "ar": "الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ",
+    "translit": "Al-ladhî youwaswisou fî soudûri n-nâs",
+    "darija": "<strong>Soudour (صدور)</strong> : le pluriel de <em>Sadr</em> (la poitrine, le réceptacle du cœur). En Darija : <em>« s-sder »</em>.",
+    "tajwid": "Interdentale sur <em>Al-ladhî</em>. Attention au <strong>Sâd (ص)</strong> de <em>soudûr</em> qui doit rester emphatique.",
+    "fr": "Qui souffle le mal dans les poitrines des hommes."
+   },
+   {
+    "num": 6,
+    "ar": "مِنَ الْجِنَّةِ وَالنَّاسِ",
+    "translit": "Mina l-jinnati wa n-nâs",
+    "darija": "<strong>Al-Jinnah (الجنة)</strong> : le monde des djinns (en Darija : <em>« l-jnoune »</em>) et <strong>An-Nâs</strong> : les êtres humains.",
+    "tajwid": "Ghunnah de 2 temps sur <em>al-jinnati</em> et sur <em>an-nâs</em>. Clôturez la récitation avec sérénité.",
+    "fr": "Qu'il soit parmi les djinns ou parmi les hommes."
+   }
+  ]
+ }
+}
