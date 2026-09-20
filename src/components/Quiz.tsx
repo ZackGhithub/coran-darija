@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { QUIZ } from '../content/quiz';
+import Icon from './Icon';
 
 const shuffle = <T,>(a: T[]) => {
   const r = [...a];
@@ -31,7 +32,7 @@ export default function Quiz() {
     <section className="tab-content fade-in">
       <div className="quiz-card">
         <div className="quiz-head">
-          <h2 className="guide-title">🧠 Quiz des racines communes</h2>
+          <h2 className="guide-title"><Icon name="brain" /> Quiz des racines communes</h2>
           <span className="pill-badge">Score : {score} / {order.length}</span>
         </div>
         <p className="muted">Retrouvez comment vos expressions quotidiennes en Darija mènent au texte coranique.</p>
@@ -65,7 +66,7 @@ export default function Quiz() {
             {picked !== null && (
               <div className="quiz-next">
                 <button className="btn btn-primary" onClick={() => { setI((n) => n + 1); setPicked(null); }}>
-                  {i + 1 === order.length ? 'Voir le résultat' : 'Question suivante →'}
+                  {i + 1 === order.length ? 'Voir le résultat' : <>Question suivante <Icon name="right" /></>}
                 </button>
               </div>
             )}

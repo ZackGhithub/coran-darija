@@ -10,6 +10,7 @@ import { unlockAudio } from '../lib/audioCache';
 import { useHifz, type HifzConfig } from '../hooks/useHifz';
 import { usePersisted } from '../lib/storage';
 import VerseMarks from './VerseMarks';
+import Icon, { type IconName } from './Icon';
 
 export interface HifzSettings {
   verseRepeat: number;
@@ -46,7 +47,7 @@ const PAUSES: { id: PauseMode; label: string; hint: string }[] = [
 const PRESETS = [
   {
     id: 'learn',
-    icon: '📖',
+    icon: 'book' as IconName,
     title: 'Apprendre',
     text: 'Chaque verset est lu 3 fois, lentement, texte visible, avec un temps pour le répéter.',
     s: { verseRepeat: 3, groupRepeat: 1, pause: 'verse', hideMode: 'none', hideFrom: 2, hideListen: true } as const,
@@ -54,7 +55,7 @@ const PRESETS = [
   },
   {
     id: 'consolidate',
-    icon: '🧠',
+    icon: 'brain' as IconName,
     title: 'Consolider',
     text: 'Le texte se réduit aux premières lettres dès la 2e lecture, et on repasse 2 fois sur le groupe.',
     s: { verseRepeat: 3, groupRepeat: 2, pause: 'verse', hideMode: 'letters', hideFrom: 2, hideListen: true } as const,
@@ -62,7 +63,7 @@ const PRESETS = [
   },
   {
     id: 'test',
-    icon: '🎯',
+    icon: 'target' as IconName,
     title: 'Tester de mémoire',
     text: 'Le texte est caché pendant que vous récitez, et réapparaît quand le récitateur lit pour vous corriger.',
     s: { verseRepeat: 2, groupRepeat: 1, pause: 'verse', hideMode: 'hidden', hideFrom: 1, hideListen: false } as const,
@@ -243,26 +244,26 @@ export default function Hifz(p: Props) {
     <section className={`tab-content fade-in ${busy || state.status === 'done' ? 'has-voice-bar' : ''}`}>
       {/* ------- Où j'en suis ------- */}
       <div className="guide-card hifz-hub">
-        <h2 className="guide-title">🧭 Ma mémorisation</h2>
+        <h2 className="guide-title"><Icon name="compass" /> Ma mémorisation</h2>
         <div className="stat-row">
-          <div className="stat"><strong>{tot.verses}</strong><span>verset{tot.verses > 1 ? 's' : ''} ✅</span></div>
+          <div className="stat"><strong>{tot.verses}</strong><span><Icon name="memorized" size="1em" /> verset{tot.verses > 1 ? 's' : ''}</span></div>
           <div className="stat"><strong>{tot.complete}</strong><span>sourate{tot.complete > 1 ? 's' : ''} complète{tot.complete > 1 ? 's' : ''}</span></div>
-          <div className="stat"><strong>{tot.favorites}</strong><span>♥ favori{tot.favorites > 1 ? 's' : ''}</span></div>
-          <div className="stat"><strong>{tot.notes}</strong><span>📝 note{tot.notes > 1 ? 's' : ''}</span></div>
+          <div className="stat"><strong>{tot.favorites}</strong><span><Icon name="favorite" size="1em" /> favori{tot.favorites > 1 ? 's' : ''}</span></div>
+          <div className="stat"><strong>{tot.notes}</strong><span><Icon name="note" size="1em" /> note{tot.notes > 1 ? 's' : ''}</span></div>
         </div>
         {next ? (
           <button className="btn btn-primary hub-continue" onClick={() => goSession(next, true)}>
-            ▶ Continuer : {surahName(next.surah)}, {next.from === next.to ? `verset ${next.from}` : `versets ${next.from} à ${next.to}`}
+            <Icon name="play" filled /> Continuer : {surahName(next.surah)}, {next.from === next.to ? `verset ${next.from}` : `versets ${next.from} à ${next.to}`}
           </button>
         ) : (
-          <p className="voice-perfect">✓ Tous les versets sont marqués comme mémorisés. Mā shā’ Allāh !</p>
+          <p className="voice-perfect"><Icon name="check" strokeWidth={3} /> Tous les versets sont marqués comme mémorisés. Mā shā’ Allāh !</p>
         )}
-        <p className="hifz-note">Cochez « ✅ Mémorisé » sur un verset (ici ou dans Récitation) pour suivre où vous en êtes ; « Continuer » propose la suite.</p>
+        <p className="hifz-note">Cochez « Mémorisé » sur un verset (ici ou dans Récitation) pour suivre où vous en êtes ; « Continuer » propose la suite.</p>
       </div>
 
-      {/* ------- Session : versets → méthode → lancer ------- */}
+      {/* ------- Session : versets, puis méthode, puis lancer ------- */}
       <div className="guide-card hifz-card" id="hifz-session">
-        <h2 className="guide-title">🔁 Nouvelle session</h2>
+        <h2 className="guide-title"><Icon name="repeat" /> Nouvelle session</h2>
 
         <h3 className="hifz-h">1 · Quels versets ?</h3>
         <div className="hifz-grid">
@@ -298,7 +299,7 @@ export default function Hifz(p: Props) {
         <div className="preset-list" role="radiogroup" aria-label="Méthode de mémorisation">
           {PRESETS.map((x) => (
             <button key={x.id} role="radio" aria-checked={activePreset?.id === x.id} className={`preset ${activePreset?.id === x.id ? 'on' : ''}`} onClick={() => applyPreset(x.id)}>
-              <span className="preset-title"><span aria-hidden="true">{x.icon}</span> {x.title}</span>
+              <span className="preset-title"><Icon name={x.icon} /> {x.title}</span>
               <span className="preset-text">{x.text}</span>
             </button>
           ))}
@@ -306,7 +307,7 @@ export default function Hifz(p: Props) {
         {!activePreset && <p className="hifz-note">Méthode personnalisée (réglages avancés modifiés).</p>}
 
         <details className="hifz-adv">
-          <summary>⚙ Réglages avancés</summary>
+          <summary><Icon name="settings" /> Réglages avancés</summary>
 
           <h3 className="hifz-h">Répétition</h3>
           <div className="hifz-grid">
@@ -326,7 +327,7 @@ export default function Hifz(p: Props) {
 
           <h3 className="hifz-h">Tempo de la récitation</h3>
           <TempoChips value={p.tempo} onChange={p.onTempo} />
-          <p className="hifz-note">Ralentir garde la voix naturelle. Vous pouvez aussi changer le tempo pendant la lecture (bouton ⏱).</p>
+          <p className="hifz-note">Ralentir garde la voix naturelle. Vous pouvez aussi changer le tempo pendant la lecture (bouton Tempo de la barre).</p>
 
           <h3 className="hifz-h">Réciter de mémoire (masquer le texte)</h3>
           <div className="chips" role="radiogroup" aria-label="Masquage du texte">
@@ -356,13 +357,13 @@ export default function Hifz(p: Props) {
           <h3 className="hifz-h">Récitateur</h3>
           <select className="surah-select reciter-select" value={reciter.id} onChange={(e) => p.onReciter(e.target.value)} aria-label="Choisir le récitateur">
             {meta.reciters.map((r) => (
-              <option key={r.id} value={r.id}>{r.qcId ? '● ' : '○ '}{r.name}</option>
+              <option key={r.id} value={r.id}>{r.name}{r.qcId ? ' · synchro exacte' : ''}</option>
             ))}
           </select>
           <p className="hifz-note">
             {synced
-              ? '● Surlignage synchronisé sur la voix (horodatages réels de chaque mot).'
-              : '○ Surlignage estimé : réparti selon la longueur des mots, donc approximatif. Choisissez un récitateur ● pour une synchronisation exacte.'}
+              ? <><Icon name="done" size="1em" /> Surlignage synchronisé sur la voix (horodatages réels de chaque mot).</>
+              : <><Icon name="estimated" size="1em" /> Surlignage estimé : réparti selon la longueur des mots, donc approximatif. Choisissez un récitateur « synchro exacte » pour une synchronisation exacte.</>}
           </p>
 
           <label className="hifz-check">
@@ -376,9 +377,9 @@ export default function Hifz(p: Props) {
             {group.length} verset{group.length > 1 ? 's' : ''} · chacun {p.settings.verseRepeat}× · tempo {fmtTempo(p.tempo)} · {HIDE_LABEL[p.settings.hideMode]}
           </p>
           {busy ? (
-            <button className="btn launch-btn" onClick={player.stop}>⏹ Arrêter la session</button>
+            <button className="btn launch-btn" onClick={player.stop}><Icon name="stop" filled /> Arrêter la session</button>
           ) : (
-            <button className="btn btn-primary launch-btn" onClick={player.play} disabled={!group.length}>▶ Lancer la session</button>
+            <button className="btn btn-primary launch-btn" onClick={player.play} disabled={!group.length}><Icon name="play" filled /> Lancer la session</button>
           )}
         </div>
       </div>
@@ -388,9 +389,9 @@ export default function Hifz(p: Props) {
 
       {state.status === 'done' && notMemorized.length > 0 && !doneDismissed && (
         <div className="notice done-card" role="status">
-          <strong>✓ Session terminée.</strong> Marquer {notMemorized.length > 1 ? `ces ${notMemorized.length} versets` : 'ce verset'} comme mémorisé{notMemorized.length > 1 ? 's' : ''} ?
+          <strong><Icon name="check" strokeWidth={3} /> Session terminée.</strong> Marquer {notMemorized.length > 1 ? `ces ${notMemorized.length} versets` : 'ce verset'} comme mémorisé{notMemorized.length > 1 ? 's' : ''} ?
           <span className="done-actions">
-            <button className="btn btn-primary" onClick={() => { p.onFlags(notMemorized.map((g) => markKey(sel.surah, g.n)), 'm', true); setDoneDismissed(true); }}>✅ Oui, marquer</button>
+            <button className="btn btn-primary" onClick={() => { p.onFlags(notMemorized.map((g) => markKey(sel.surah, g.n)), 'm', true); setDoneDismissed(true); }}><Icon name="check" strokeWidth={3} /> Oui, marquer</button>
             <button className="btn" onClick={() => setDoneDismissed(true)}>Pas encore</button>
           </span>
         </div>
@@ -418,14 +419,14 @@ export default function Hifz(p: Props) {
       {/* ------- Favoris et notes ------- */}
       {favs.length > 0 && (
         <div className="guide-card">
-          <h3 className="guide-title">♥ Mes favoris ({favs.length})</h3>
+          <h3 className="guide-title"><Icon name="favorite" filled /> Mes favoris ({favs.length})</h3>
           <ul className="mark-list">
             {favs.map((f) => (
               <li key={`${f.surah}:${f.verse}`}>
                 <span>{surahName(f.surah)} · verset {f.verse}</span>
                 <span className="mark-list-actions">
                   <button className="link-btn" onClick={() => p.onOpen(f.surah, f.verse)}>Lire</button>
-                  <button className="link-btn" onClick={() => goSession({ surah: f.surah, from: f.verse, to: f.verse })}>🔁 Mémoriser</button>
+                  <button className="link-btn" onClick={() => goSession({ surah: f.surah, from: f.verse, to: f.verse })}><Icon name="repeat" /> Mémoriser</button>
                 </span>
               </li>
             ))}
@@ -434,7 +435,7 @@ export default function Hifz(p: Props) {
       )}
       {notes.length > 0 && (
         <div className="guide-card">
-          <h3 className="guide-title">📝 Mes notes ({notes.length})</h3>
+          <h3 className="guide-title"><Icon name="note" /> Mes notes ({notes.length})</h3>
           <ul className="mark-list">
             {notes.map((f) => (
               <li key={`${f.surah}:${f.verse}`} className="mark-note-item">
@@ -455,10 +456,10 @@ export default function Hifz(p: Props) {
             {state.status === 'idle' && `${group.length} verset${group.length > 1 ? 's' : ''} prêt${group.length > 1 ? 's' : ''}`}
             {state.status === 'loading' && 'Chargement…'}
             {state.status === 'playing' && <><span className="rec-dot play" aria-hidden="true" />Lecture</>}
-            {state.status === 'gap' && '🗣️ À vous de répéter'}
-            {state.status === 'paused' && '⏸ En pause'}
-            {state.status === 'done' && '✓ Terminé'}
-            {state.status === 'error' && '⚠ Erreur'}
+            {state.status === 'gap' && <><Icon name="speak" /> À vous de répéter</>}
+            {state.status === 'paused' && <><Icon name="pause" filled /> En pause</>}
+            {state.status === 'done' && <><Icon name="check" strokeWidth={3} /> Terminé</>}
+            {state.status === 'error' && <><Icon name="warning" /> Erreur</>}
           </span>
           {state.verse != null && (
             <span className="voice-bar-where">
@@ -484,19 +485,19 @@ export default function Hifz(p: Props) {
         )}
 
         <div className="transport">
-          <button className="btn" onClick={player.prev} disabled={!busy} aria-label="Verset précédent">⏮</button>
+          <button className="btn" onClick={player.prev} disabled={!busy} aria-label="Verset précédent"><Icon name="prev" size="1.3em" /></button>
           {state.status === 'playing' || state.status === 'gap' || state.status === 'loading' ? (
-            <button className="btn btn-primary transport-main" onClick={player.pause}>⏸ Pause</button>
+            <button className="btn btn-primary transport-main" onClick={player.pause}><Icon name="pause" filled /> Pause</button>
           ) : state.status === 'paused' ? (
-            <button className="btn btn-primary transport-main" onClick={player.resume}>▶ Reprendre</button>
+            <button className="btn btn-primary transport-main" onClick={player.resume}><Icon name="play" filled /> Reprendre</button>
           ) : (
-            <button className="btn btn-primary transport-main" onClick={player.play} disabled={!group.length}>▶ Lecture</button>
+            <button className="btn btn-primary transport-main" onClick={player.play} disabled={!group.length}><Icon name="play" filled /> Lecture</button>
           )}
-          <button className="btn" onClick={player.next} disabled={!busy} aria-label="Verset suivant">⏭</button>
+          <button className="btn" onClick={player.next} disabled={!busy} aria-label="Verset suivant"><Icon name="next" size="1.3em" /></button>
           <button className={`btn tempo-btn ${tempoOpen ? 'on' : ''}`} onClick={() => setTempoOpen((o) => !o)} aria-expanded={tempoOpen} aria-label={`Tempo, actuellement ${fmtTempo(p.tempo)}`}>
-            ⏱ {fmtTempo(p.tempo)}
+            <Icon name="tempo" /> {fmtTempo(p.tempo)}
           </button>
-          <button className="btn" onClick={player.stop} disabled={!busy && state.status !== 'done'} aria-label="Arrêter">⏹</button>
+          <button className="btn" onClick={player.stop} disabled={!busy && state.status !== 'done'} aria-label="Arrêter"><Icon name="stop" filled /></button>
         </div>
       </div>
     </section>
@@ -521,9 +522,9 @@ function Stepper(p: { label: string; value: number; min: number; max: number; su
     <div className="stepper">
       <span className="stepper-label">{p.label}</span>
       <div className="stepper-row">
-        <button className="btn btn-icon" aria-label={`Diminuer : ${p.label}`} disabled={inf} onClick={() => p.onChange(Math.max(p.min, p.value - 1))}>−</button>
+        <button className="btn btn-icon" aria-label={`Diminuer : ${p.label}`} disabled={inf} onClick={() => p.onChange(Math.max(p.min, p.value - 1))}><Icon name="minus" /></button>
         <output className="stepper-value">{inf ? '∞' : `${p.value}${p.suffix}`}</output>
-        <button className="btn btn-icon" aria-label={`Augmenter : ${p.label}`} disabled={inf} onClick={() => p.onChange(Math.min(p.max, p.value + 1))}>+</button>
+        <button className="btn btn-icon" aria-label={`Augmenter : ${p.label}`} disabled={inf} onClick={() => p.onChange(Math.min(p.max, p.value + 1))}><Icon name="plus" /></button>
         {p.infinite && (
           <button className={`chip ${inf ? 'on' : ''}`} aria-pressed={inf} onClick={() => p.onChange(inf ? 1 : 0)}>∞ sans fin</button>
         )}
@@ -563,8 +564,8 @@ const HifzVerse = memo(function HifzVerse({ verse: v, mask, hideTranslit, onTogg
     >
       <div className="verse-top-row">
         <div className="verse-number-badge">{v.n}</div>
-        {gap && <span className="pill-badge">🗣️ À vous</span>}
-        {mask !== 'none' && <span className="pill-badge">👁 Touchez pour voir</span>}
+        {gap && <span className="pill-badge"><Icon name="speak" size="1em" /> À vous</span>}
+        {mask !== 'none' && <span className="pill-badge"><Icon name="eye" size="1em" /> Touchez pour voir</span>}
       </div>
       <div className="arabic-text" lang="ar" dir="rtl">
         {segments.map((s, i) => {

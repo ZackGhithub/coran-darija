@@ -1,3 +1,5 @@
+import Icon from './Icon';
+
 const LETTERS: { code: string; ar: string; name: string; text: string }[] = [
   { code: '3', ar: 'ع', name: "'Ayn", text: 'Son pharyngé profond produit au milieu de la gorge (ex : 3ayn, 3sel, Rabbi l-3âlamîn).' },
   { code: '7', ar: 'ح', name: 'Ḥā’', text: 'H aspiré rauque et chaud, sans racler (ex : 7outa, l-7amd, Ar-Ra7mân). À distinguer du هـ doux.' },
@@ -31,7 +33,7 @@ export default function Guide() {
   return (
     <section className="tab-content fade-in">
       <div className="guide-card">
-        <h2 className="guide-title">📖 Le système des chiffres arabes (3, 7, 9, 5, 8)</h2>
+        <h2 className="guide-title"><Icon name="book" /> Le système des chiffres arabes (3, 7, 9, 5, 8)</h2>
         <p className="muted">
           Utilisé dans l&apos;écriture du Darija (« Arabizi »), il permet de transcrire les sons du Coran absents de l&apos;alphabet latin. Cette convention est
           employée partout dans l&apos;application.
@@ -54,7 +56,7 @@ export default function Guide() {
           </table>
         </div>
 
-        <h3 className="guide-title spaced">🎯 Les 4 pièges majeurs pour les locuteurs de Darija</h3>
+        <h3 className="guide-title spaced"><Icon name="target" /> Les 4 pièges majeurs pour les locuteurs de Darija</h3>
         <div className="pitfall-list">
           {PITFALLS.map((p) => (
             <div key={p.title} className="pitfall-item">
@@ -64,7 +66,7 @@ export default function Guide() {
           ))}
         </div>
 
-        <h3 className="guide-title spaced">🎤 La récitation vocale</h3>
+        <h3 className="guide-title spaced"><Icon name="mic" /> La récitation vocale</h3>
         <div className="pitfall-item">
           <p>
             Le bouton « Réciter » écoute votre voix et colore chaque mot : <span className="w-ok">vert</span> s&apos;il est reconnu,{' '}

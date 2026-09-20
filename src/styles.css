@@ -199,7 +199,7 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 .hw-mask.hw-past { background: var(--text-muted); opacity: 0.55; }
 .hw-hint { color: var(--text-secondary); }
 
-/* Marques sur les versets : ✓ mémorisé, ♥ favori, 📝 note */
+/* Marques sur les versets : mémorisé, favori, note */
 .marks { margin: 0 0 10px; }
 .marks-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .mark-pill { min-height: 40px; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-secondary); font-weight: 600; font-size: 0.88rem; cursor: pointer; }
@@ -239,3 +239,27 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 .hifz-bar .tempo-btn { min-width: 74px; font-variant-numeric: tabular-nums; }
 .hifz-bar .tempo-btn.on { background: var(--emerald-primary); color: #fff; border-color: var(--emerald-primary); }
 .tempo-pop { padding: 8px 0; }
+
+/* ---------- Icônes (Lucide) : taille, alignement et couleur ----------
+   Les icônes sont des tracés vectoriels qui héritent de la COULEUR du texte (currentColor) : le mode sombre, les états
+   actif / désactivé et les boutons colorés fonctionnent sans règle en plus. Leur TAILLE suit celle du texte (em). */
+.ico { display: inline-block; flex: none; vertical-align: -0.2em; }
+.btn, .btn-action-compact, .verse-play-btn, .mark-pill, .chip, .link-btn, .pill-badge, .filter-pill, .tab-btn,
+.quarter-check, .top-btn, .collapsible-arrow, .preset-title, .guide-title, .voice-bar-state, .stat span, .range-title,
+.hifz-adv summary, .note-preview, .hizb-symbol, .voice-perfect, .w-ok-txt strong, .w-wrong-txt strong, .verse-stat {
+  display: inline-flex; align-items: center; gap: 0.4em;
+}
+.btn, .btn-action-compact, .verse-play-btn, .mark-pill, .chip, .quarter-check, .top-btn { justify-content: center; }
+.guide-title, .stat span { flex-wrap: wrap; }
+.stat span { justify-content: center; }
+.btn-icon { padding: 0; }
+.btn:disabled .ico, .btn-action-compact:disabled .ico, .verse-play-btn:disabled .ico { opacity: 0.55; }
+.collapsible-arrow { transition: transform 0.2s ease; }
+.hizb-symbol { justify-content: center; min-width: 1.5rem; }
+.pill-badge .ico { margin-right: 0; }
+.stat span .ico { opacity: 0.85; }
+.mark-pill.on-f .ico, .preset.on .ico { color: inherit; }
+.note-dot { display: inline-block; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; }
+.memo-count .ico { vertical-align: -0.15em; }
+.top-btn .ico { vertical-align: 0; }
+.filter-pill .ico { opacity: 0.9; }

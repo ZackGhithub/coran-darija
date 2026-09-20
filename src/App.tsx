@@ -9,6 +9,7 @@ import HizbView from './components/HizbView';
 import Guide from './components/Guide';
 import Hifz, { DEFAULT_HIFZ, type HifzSettings } from './components/Hifz';
 import Quiz from './components/Quiz';
+import Icon from './components/Icon';
 import { memorizedCounts, setFlags, setNote, toggleFlag, totals, type Flag, type Marks } from './lib/marks';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -139,7 +140,7 @@ export default function App() {
         </div>
         <div className="header-controls">
           <button className="btn" onClick={cycleTheme} aria-label="Changer de thème">
-            {theme === 'dark' ? '☀️ Clair' : theme === 'light' ? '🌗 Auto' : '🌙 Sombre'}
+            {theme === 'dark' ? <><Icon name="sun" /> Clair</> : theme === 'light' ? <><Icon name="auto" /> Auto</> : <><Icon name="moon" /> Sombre</>}
           </button>
         </div>
       </header>
@@ -227,8 +228,8 @@ export default function App() {
         <p>Coran Darija — pour l&apos;apprentissage autonome et la mémorisation sereine.</p>
         <p className="foot-small">Votre progression reste sur cet appareil. Sauvegardez-la pour la retrouver sur un autre appareil :</p>
         <p className="foot-actions">
-          <button className="btn-action-compact" onClick={onExport}>⬇ Exporter</button>
-          <button className="btn-action-compact" onClick={() => fileInput.current?.click()}>⬆ Importer</button>
+          <button className="btn-action-compact" onClick={onExport}><Icon name="download" /> Exporter</button>
+          <button className="btn-action-compact" onClick={() => fileInput.current?.click()}><Icon name="upload" /> Importer</button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ''; }} />
         </p>
         <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com · Horodatage des mots : Quran.com</p>
@@ -237,7 +238,7 @@ export default function App() {
 
       {showTop && (
         <button className="top-btn" aria-label="Retour en haut de la page" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          ↑
+          <Icon name="up" size={22} strokeWidth={2.5} />
         </button>
       )}
 

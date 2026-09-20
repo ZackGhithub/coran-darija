@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react';
 import type { Meta } from '../types';
 import { hizbRangeOfSurah } from '../lib/hizb';
+import Icon, { type IconName } from './Icon';
 
 type Filter = 'all' | 'small' | 'learned' | 'unlearned' | 'makkah' | 'madinah';
 
-const FILTERS: { id: Filter; label: string }[] = [
+const FILTERS: { id: Filter; label: string; icon?: IconName }[] = [
   { id: 'small', label: 'Petites sourates' },
   { id: 'all', label: 'Toutes (114)' },
-  { id: 'learned', label: 'Apprises 🟢' },
-  { id: 'unlearned', label: 'À apprendre ⚪' },
+  { id: 'learned', label: 'Apprises', icon: 'done' },
+  { id: 'unlearned', label: 'À apprendre', icon: 'todo' },
   { id: 'makkah', label: 'Mecquoises' },
   { id: 'madinah', label: 'Médinoises' },
 ];
@@ -37,7 +38,7 @@ export default function IndexView({ meta, learned, memorized, onOpen }: { meta: 
       <input className="search-input" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher : numéro, nom (Fatiha) ou arabe (الناس)…" aria-label="Rechercher une sourate" />
       <div className="filter-pills">
         {FILTERS.map((f) => (
-          <button key={f.id} className={`filter-pill ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>
+          <button key={f.id} className={`filter-pill ${filter === f.id ? 'active' : ''}`} onClick={() => setFilter(f.id)}>{f.icon && <Icon name={f.icon} />}{f.label}</button>
         ))}
       </div>
       <div className="surah-grid">
@@ -52,7 +53,7 @@ export default function IndexView({ meta, learned, memorized, onOpen }: { meta: 
                   <h3>{s.fr}</h3>
                   <p>
                     {s.tr} • {s.verses} v. • {r.from === r.to ? `Hizb ${r.from}` : `Hizb ${r.from}–${r.to}`}
-                    {(memorized.get(s.n) ?? 0) > 0 && <strong className="memo-count"> · ✓ {memorized.get(s.n)}/{s.verses}</strong>}
+                    {(memorized.get(s.n) ?? 0) > 0 && <strong className="memo-count"> · <Icon name="check" size="0.95em" strokeWidth={3} /> {memorized.get(s.n)}/{s.verses}</strong>}
                   </p>
                 </span>
               </span>

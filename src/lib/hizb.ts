@@ -28,7 +28,7 @@ export function markerFor(q: number): HizbMarker {
     hizb,
     part,
     isHizbStart: part === 0,
-    symbol: part === 0 ? '۞' : '◦',
+    symbol: part === 0 ? '۞' : '', // ۞ : signe du texte coranique ; le repère des autres quarts est une icône dessinée dans l'interface
     ar: part === 0 ? `${AR[0]} ${hizb}` : AR[part],
     fr: part === 0 ? `${FR[0]} ${hizb}` : `${FR[part]} ${hizb}`,
   };
@@ -36,7 +36,7 @@ export function markerFor(q: number): HizbMarker {
 
 export const quarterKey = (surah: number, ayah: number) => `${surah}:${ayah}`;
 
-/** Index « sourate:verset → quart » pour marquer instantanément le début de chaque quart dans le texte. */
+/** Index « sourate:verset » vers quart, pour marquer instantanément le début de chaque quart dans le texte. */
 export function indexQuarters(quarters: Quarter[]): Map<string, Quarter> {
   return new Map(quarters.map((q) => [quarterKey(q.surah, q.ayah), q]));
 }

@@ -1,5 +1,5 @@
 /**
- * Marques personnelles sur chaque verset : mémorisé (✓), favori (♥) et note (📝).
+ * Marques personnelles sur chaque verset : mémorisé, favori et note.
  * Logique pure (sans React), stockée telle quelle dans le navigateur de l'utilisateur.
  */
 

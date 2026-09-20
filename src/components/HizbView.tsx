@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Meta } from '../types';
+import Icon from './Icon';
 import { HIZB_COUNT, QUARTER_COUNT, juzOfHizb, markerFor, quartersOfHizb } from '../lib/hizb';
 
 interface Props {
@@ -65,13 +66,13 @@ export default function HizbView({ meta, done, onToggle, onToggleHizb, onOpen }:
                   return (
                     <li key={q} className="quarter-row">
                       <button className={`quarter-check ${on ? 'on' : ''}`} onClick={() => onToggle(q)} aria-pressed={on} aria-label={`${markerFor(q).fr}, ${on ? 'fait' : 'à faire'}`}>
-                        {on ? '✓' : ''}
+                        {on ? <Icon name="check" size="1em" strokeWidth={3} /> : null}
                       </button>
                       <span className="quarter-text">
                         <strong>{markerFor(q).part === 0 ? 'Début' : ['', '¼', '½', '¾'][markerFor(q).part]}</strong>
                         <span className="muted"> · {s.fr} {info.ayah} · p. {info.page}</span>
                       </span>
-                      <button className="link-btn" onClick={() => onOpen(info.surah, info.ayah)}>Lire →</button>
+                      <button className="link-btn" onClick={() => onOpen(info.surah, info.ayah)}>Lire <Icon name="right" /></button>
                     </li>
                   );
                 })}

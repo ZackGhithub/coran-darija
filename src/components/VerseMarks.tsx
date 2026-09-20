@@ -1,5 +1,6 @@
 import { memo, useEffect, useState } from 'react';
 import type { Flag, VerseMark } from '../lib/marks';
+import Icon from './Icon';
 
 interface Props {
   vkey: string; // « sourate:verset »
@@ -9,8 +10,8 @@ interface Props {
 }
 
 /**
- * Marques personnelles d'un verset : ✓ mémorisé (pour savoir où on en est), ♥ favori (à garder sous la main)
- * et 📝 note. Les données restent sur l'appareil.
+ * Marques personnelles d'un verset : mémorisé (pour savoir où on en est), favori (à garder sous la main)
+ * et note. Les données restent sur l'appareil.
  */
 export default memo(function VerseMarks({ vkey, mark, onFlag, onNote }: Props) {
   const [open, setOpen] = useState(false);
@@ -30,7 +31,7 @@ export default memo(function VerseMarks({ vkey, mark, onFlag, onNote }: Props) {
           onClick={() => onFlag(vkey, 'm')}
           title="Cochez quand ce verset est mémorisé, pour savoir où vous en êtes"
         >
-          <span aria-hidden="true">{mark?.m ? '✅' : '☐'}</span> Mémorisé
+          <Icon name={mark?.m ? 'memorized' : 'unmemorized'} /> Mémorisé
         </button>
         <button
           type="button"
@@ -39,7 +40,7 @@ export default memo(function VerseMarks({ vkey, mark, onFlag, onNote }: Props) {
           onClick={() => onFlag(vkey, 'f')}
           title="Garder ce verset dans vos favoris"
         >
-          <span aria-hidden="true">{mark?.f ? '♥' : '♡'}</span> Favori
+          <Icon name="favorite" filled={!!mark?.f} /> Favori
         </button>
         <button
           type="button"
@@ -48,7 +49,7 @@ export default memo(function VerseMarks({ vkey, mark, onFlag, onNote }: Props) {
           onClick={() => setOpen((o) => !o)}
           title="Ajouter une note sur ce verset"
         >
-          <span aria-hidden="true">📝</span> Note{mark?.n ? ' •' : ''}
+          <Icon name="note" /> Note{mark?.n && <span className="note-dot" title="Une note est enregistrée" />}
         </button>
       </div>
 
@@ -92,7 +93,7 @@ export default memo(function VerseMarks({ vkey, mark, onFlag, onNote }: Props) {
       )}
       {!open && mark?.n && (
         <button type="button" className="note-preview" onClick={() => setOpen(true)} title="Modifier la note">
-          📝 {mark.n}
+          <Icon name="note" /> {mark.n}
         </button>
       )}
     </div>

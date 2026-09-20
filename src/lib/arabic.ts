@@ -87,9 +87,9 @@ const COST_EXTRA = 1.5; // mot prononcé en trop (ignoré) ; plus cher qu'une er
 
 /**
  * Aligne les mots prononcés sur les mots attendus (programmation dynamique, fin du verset libre).
- * - mot reconnu               → 'ok'    (vert)
- * - mot prononcé mais différent, ou mot sauté avant un mot reconnu → 'wrong' (rouge)
- * - mots après le dernier mot prononcé                             → 'pending' (neutre)
+ * - mot reconnu               : 'ok'    (vert)
+ * - mot prononcé mais différent, ou mot sauté avant un mot reconnu : 'wrong' (rouge)
+ * - mots après le dernier mot prononcé                             : 'pending' (neutre)
  * `provisionalLast` : pendant la reconnaissance en cours, le dernier mot prononcé est peut-être incomplet ;
  * s'il est le début du mot attendu, il reste neutre au lieu de clignoter en rouge.
  */

@@ -9,6 +9,7 @@ import { isStandaloneIOS, useSpeech } from '../hooks/useSpeech';
 import { unlockAudio } from '../lib/audioCache';
 import { markKey, type Flag, type Marks, type VerseMark } from '../lib/marks';
 import VerseMarks from './VerseMarks';
+import Icon from './Icon';
 
 interface Props {
   meta: Meta;
@@ -252,7 +253,7 @@ export default function Recitation(p: Props) {
         <select className="surah-select" value={surahNum} onChange={(e) => p.onSurah(Number(e.target.value))} aria-label="Choisir la sourate">
           {meta.surahs.map((s) => (
             <option key={s.n} value={s.n}>
-              {p.learned.includes(s.n) ? '🟢' : '⚪'} {s.n}. {s.fr}
+              {s.n}. {s.fr}{p.learned.includes(s.n) ? ' (apprise)' : ''}
             </option>
           ))}
         </select>
@@ -276,9 +277,9 @@ export default function Recitation(p: Props) {
         <div className="surah-badges">
           <span className="pill-badge">{surah.verses} versets</span>
           <span className="pill-badge">{surah.type}</span>
-          <span className="pill-badge">{hizb.from === hizb.to ? `Hizb ${hizb.from}` : `Hizb ${hizb.from} → ${hizb.to}`}</span>
+          <span className="pill-badge">{hizb.from === hizb.to ? `Hizb ${hizb.from}` : <>Hizb {hizb.from} <Icon name="right" size="0.95em" /> {hizb.to}</>}</span>
           <button className={`pill-btn pill-badge ${isLearned ? 'is-learned' : ''}`} onClick={() => p.onToggleLearned(surahNum)} aria-pressed={isLearned}>
-            {isLearned ? 'Mémorisée 🟢' : 'Marquer comme apprise ⚪'}
+            {isLearned ? <><Icon name="done" filled={false} /> Mémorisée</> : <><Icon name="todo" /> Marquer comme apprise</>}
           </button>
         </div>
       </section>
@@ -298,10 +299,10 @@ export default function Recitation(p: Props) {
             </select>
           </label>
           {audio.playing ? (
-            <button className="btn" onClick={audio.stop}>⏹ Arrêter</button>
+            <button className="btn" onClick={audio.stop}><Icon name="stop" filled /> Arrêter</button>
           ) : (
             <button className="btn btn-primary" disabled={!verses} onClick={() => verses && playVerses(verses.map((v) => v.n))}>
-              ▶ Écouter la sourate
+              <Icon name="play" filled /> Écouter la sourate
             </button>
           )}
           <button className="btn" onClick={() => p.onRepeat(p.repeat === 1 ? 3 : p.repeat === 3 ? 5 : 1)} title="Nombre de lectures de chaque verset">
@@ -315,15 +316,15 @@ export default function Recitation(p: Props) {
         </div>
         <div className="font-group">
           <span className="font-label">Taille arabe :</span>
-          <button className="btn btn-icon" aria-label="Réduire" onClick={() => p.onFontSize(Math.max(1.2, +(p.fontSize - 0.15).toFixed(2)))}>−</button>
-          <button className="btn btn-icon" aria-label="Agrandir" onClick={() => p.onFontSize(Math.min(3, +(p.fontSize + 0.15).toFixed(2)))}>+</button>
-          <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: false }))}>▲ Tout réduire</button>
-          <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: true }))}>▼ Tout afficher</button>
+          <button className="btn btn-icon" aria-label="Réduire" onClick={() => p.onFontSize(Math.max(1.2, +(p.fontSize - 0.15).toFixed(2)))}><Icon name="minus" /></button>
+          <button className="btn btn-icon" aria-label="Agrandir" onClick={() => p.onFontSize(Math.min(3, +(p.fontSize + 0.15).toFixed(2)))}><Icon name="plus" /></button>
+          <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: false }))}><Icon name="collapse" /> Tout réduire</button>
+          <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: true }))}><Icon name="expand" /> Tout afficher</button>
         </div>
       </div>
 
       <div className="range-bar">
-        <span className="range-title">🎤 Récitation continue</span>
+        <span className="range-title"><Icon name="mic" /> Récitation continue</span>
         <label className="range-field">
           <span>du verset</span>
           <select className="surah-select" value={range.from} onChange={(e) => { const from = Number(e.target.value); setRange((r) => ({ from, to: Math.max(r.to, from) })); }} aria-label="Premier verset à réciter">
@@ -337,7 +338,7 @@ export default function Recitation(p: Props) {
           </select>
         </label>
         <button className="btn-action-compact" onClick={() => setRange({ from: 1, to: surah.verses })}>Toute la sourate</button>
-        <button className="btn-action-compact" onClick={() => p.onHifz(surahNum, range.from, range.to)} title="Répéter ces versets avec le récitateur (module Hifz)">🔁 Mémoriser (Hifz)</button>
+        <button className="btn-action-compact" onClick={() => p.onHifz(surahNum, range.from, range.to)} title="Répéter ces versets avec le récitateur (module Hifz)"><Icon name="repeat" /> Mémoriser (Hifz)</button>
         <button
           className="btn btn-primary"
           disabled={!verses || !speech.supported || speech.listening}
@@ -347,7 +348,7 @@ export default function Recitation(p: Props) {
             startVoice(range.from, range.to);
           }}
         >
-          🎤 Démarrer
+          <Icon name="mic" /> Démarrer
         </button>
       </div>
 
@@ -394,15 +395,15 @@ export default function Recitation(p: Props) {
               {cfg.from === cfg.to ? `Verset ${cfg.from}` : `Versets ${cfg.from}–${cfg.to}`}
               {speech.listening && multi && currentVerse != null ? ` · en cours : ${currentVerse}` : ''}
             </span>
-            <span className="w-ok-txt"><strong>✓ {summary.ok}</strong></span>
-            <span className="w-wrong-txt"><strong>✗ {summary.wrong}</strong></span>
+            <span className="w-ok-txt"><strong><Icon name="check" strokeWidth={3} /> {summary.ok}</strong></span>
+            <span className="w-wrong-txt"><strong><Icon name="wrong" strokeWidth={3} /> {summary.wrong}</strong></span>
             <span className="muted">/ {summary.total} mots</span>
             <span className="voice-bar-actions">
               {speech.listening ? (
-                <button className="btn voice-on" onClick={stopVoice}>⏹ Terminer</button>
+                <button className="btn voice-on" onClick={stopVoice}><Icon name="stop" filled /> Terminer</button>
               ) : (
                 <>
-                  <button className="btn btn-primary" onClick={() => startVoice(cfg.from, cfg.to)}>↻ Recommencer</button>
+                  <button className="btn btn-primary" onClick={() => startVoice(cfg.from, cfg.to)}><Icon name="restart" /> Recommencer</button>
                   <button className="btn" onClick={() => setCfg(null)}>Fermer</button>
                 </>
               )}
@@ -414,7 +415,7 @@ export default function Recitation(p: Props) {
           ) : (
             !speech.listening && summary.ok + summary.wrong === 0 && <div>Aucune parole détectée. Appuyez sur « Recommencer » et parlez près du micro.</div>
           )}
-          {!speech.listening && summary.total > 0 && summary.ok === summary.total && <div className="voice-perfect">✓ Bravo, récitation sans faute ({summary.total} mots).</div>}
+          {!speech.listening && summary.total > 0 && summary.ok === summary.total && <div className="voice-perfect"><Icon name="check" strokeWidth={3} /> Bravo, récitation sans faute ({summary.total} mots).</div>}
           {heard && (
             <div className="voice-heard">
               Entendu : <bdi lang="ar" dir="rtl">{heard}</bdi>
@@ -461,7 +462,7 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
     <>
       {marker && (
         <div className={`hizb-marker ${marker.isHizbStart ? 'hizb-start' : ''}`} role="separator" aria-label={marker.fr}>
-          <span className="hizb-symbol" aria-hidden="true">{marker.symbol}</span>
+          <span className="hizb-symbol" aria-hidden="true">{marker.isHizbStart ? '۞' : <Icon name="dot" size="1.6em" strokeWidth={3} />}</span>
           <span className="hizb-ar" lang="ar" dir="rtl">{marker.ar}</span>
           <span className="hizb-fr">
             {marker.fr} · Juz {p.quarter!.juz} · p. {p.quarter!.page}
@@ -474,13 +475,13 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
           <div className="verse-actions">
             {p.stat && (
               <span className="verse-stat" title={`${p.stat.attempts} essai(s), ${p.stat.perfect} sans faute`}>
-                {p.stat.perfect > 0 ? '✓' : '·'} {p.stat.perfect}/{p.stat.attempts}
+                {p.stat.perfect > 0 && <Icon name="check" size="1em" strokeWidth={3} />} {p.stat.perfect}/{p.stat.attempts}
               </span>
             )}
-            <button className="verse-play-btn" onClick={() => p.onPlay(v.n)}>▶ Écouter</button>
-            <button className="verse-play-btn" onClick={() => p.onRepeat(v.n)} title="Répéter ce verset avec le récitateur (module Hifz)">🔁 Répéter</button>
+            <button className="verse-play-btn" onClick={() => p.onPlay(v.n)}><Icon name="play" filled /> Écouter</button>
+            <button className="verse-play-btn" onClick={() => p.onRepeat(v.n)} title="Répéter ce verset avec le récitateur (module Hifz)"><Icon name="repeat" /> Répéter</button>
             {p.listening ? (
-              <button className="verse-play-btn voice-on" onClick={p.onVoiceStop}>⏹ Terminer</button>
+              <button className="verse-play-btn voice-on" onClick={p.onVoiceStop}><Icon name="stop" filled /> Terminer</button>
             ) : (
               <button
                 className="verse-play-btn voice-btn"
@@ -488,7 +489,7 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
                 disabled={!p.voiceSupported}
                 title={p.voiceSupported ? 'Réciter ce verset à voix haute' : 'Reconnaissance vocale indisponible sur ce navigateur'}
               >
-                🎤 Réciter
+                <Icon name="mic" /> Réciter
               </button>
             )}
           </div>
@@ -533,15 +534,15 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
               <div className="translit-label">Translittération phonétique (Darija 3, 7, 9)</div>
               <div dangerouslySetInnerHTML={{ __html: e.translit }} />
             </div>
-            <Fold title="💡 Levier Darija (racines communes)" cls="darija-lever-box" collapse={p.collapse} defaultOpen>
+            <Fold title={<><Icon name="idea" /> Levier Darija (racines communes)</>} cls="darija-lever-box" collapse={p.collapse} defaultOpen>
               <div className="darija-lever-content" dangerouslySetInnerHTML={{ __html: e.darija }} />
             </Fold>
-            <Fold title="🎯 Conseil Tajwid pour darijophone" cls="tajwid-tip-box" collapse={p.collapse}>
+            <Fold title={<><Icon name="target" /> Conseil Tajwid pour darijophone</>} cls="tajwid-tip-box" collapse={p.collapse}>
               <div className="tajwid-tip-content" dangerouslySetInnerHTML={{ __html: e.tajwid }} />
             </Fold>
           </>
         ) : null}
-        <Fold title="🇫🇷 Traduction en français" cls="translation-box" collapse={p.collapse}>
+        <Fold title={<><Icon name="translate" /> Traduction en français</>} cls="translation-box" collapse={p.collapse}>
           <div>{v.fr}</div>
         </Fold>
         {!e && (
@@ -552,7 +553,7 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
   );
 });
 
-function Fold(props: { title: string; cls: string; collapse: { n: number; open: boolean }; defaultOpen?: boolean; children: React.ReactNode }) {
+function Fold(props: { title: React.ReactNode; cls: string; collapse: { n: number; open: boolean }; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(!!props.defaultOpen);
   useEffect(() => {
     if (props.collapse.n > 0) setOpen(props.collapse.open);
@@ -561,7 +562,7 @@ function Fold(props: { title: string; cls: string; collapse: { n: number; open: 
     <div className={`collapsible-box ${props.cls} ${open ? '' : 'collapsed'}`}>
       <button className="collapsible-trigger" type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <span className="collapsible-trigger-title">{props.title}</span>
-        <span className="collapsible-arrow">▼</span>
+        <span className="collapsible-arrow"><Icon name="chevron" /></span>
       </button>
       <div className="collapsible-content">{props.children}</div>
     </div>
