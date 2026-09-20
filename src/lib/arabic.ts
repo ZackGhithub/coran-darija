@@ -93,13 +93,20 @@ const COST_EXTRA = 1.5; // mot prononcé en trop (ignoré) ; plus cher qu'une er
  * `provisionalLast` : pendant la reconnaissance en cours, le dernier mot prononcé est peut-être incomplet ;
  * s'il est le début du mot attendu, il reste neutre au lieu de clignoter en rouge.
  */
-export function alignRecitation(target: string[], spoken: string[], opts: { provisionalLast?: boolean } = {}): WordStatus[] {
+export interface Alignment {
+  status: WordStatus[];
+  /** Pour chaque mot dit : index du mot attendu auquel il est associé, ou -1 s'il est en trop. */
+  spokenToTarget: number[];
+}
+
+export function alignDetailed(target: string[], spoken: string[], opts: { provisionalLast?: boolean } = {}): Alignment {
   const T = target.map(normalizeArabic);
   const S = spoken;
   const m = T.length;
   const n = S.length;
   const status: WordStatus[] = new Array(m).fill('pending');
-  if (n === 0 || m === 0) return status;
+  const spokenToTarget: number[] = new Array(n).fill(-1);
+  if (n === 0 || m === 0) return { status, spokenToTarget };
 
   const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(Infinity));
   const back: string[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(''));
@@ -135,10 +142,11 @@ export function alignRecitation(target: string[], spoken: string[], opts: { prov
   let j = n;
   while (i > 0 || j > 0) {
     const mv = back[i][j];
-    if (mv === 'match') { status[i - 1] = 'ok'; i--; j--; }
+    if (mv === 'match') { status[i - 1] = 'ok'; spokenToTarget[j - 1] = i - 1; i--; j--; }
     else if (mv === 'sub') {
       const partial = opts.provisionalLast && j === n && T[i - 1].startsWith(S[j - 1]);
       status[i - 1] = partial ? 'pending' : 'wrong';
+      spokenToTarget[j - 1] = i - 1;
       i--; j--;
     }
     else if (mv === 'skip') { status[i - 1] = 'wrong'; i--; }
@@ -146,7 +154,11 @@ export function alignRecitation(target: string[], spoken: string[], opts: { prov
     else break;
   }
   for (let k = endI; k < m; k++) status[k] = 'pending';
-  return status;
+  return { status, spokenToTarget };
+}
+
+export function alignRecitation(target: string[], spoken: string[], opts: { provisionalLast?: boolean } = {}): WordStatus[] {
+  return alignDetailed(target, spoken, opts).status;
 }
 
 /** Découpe l'affichage d'un verset : chaque segment porte l'index du mot à colorier (null pour les signes de pause). */
@@ -171,6 +183,58 @@ export function alignFrom(
 ): WordStatus[] {
   const head: WordStatus[] = Array.from({ length: Math.min(startAt, target.length) }, (_, i) => frozen[i] ?? 'pending');
   return [...head, ...alignRecitation(target.slice(startAt), spoken, opts)];
+}
+
+/** Mots récents que le moteur vocal peut encore réviser : on ne les fige pas. */
+const STREAM_MARGIN = 24;
+/** Mots attendus examinés au-delà de ce qui a été dit (pour rattraper des mots sautés). */
+const STREAM_SLACK = 40;
+
+/**
+ * Comparaison « au fil de l'eau » pour une récitation longue (une sourate entière, des milliers de mots).
+ *
+ * Comparer tout ce qui a été dit à tout le texte à chaque nouveau mot serait bien trop lent sur un téléphone
+ * (coût proportionnel au produit des deux longueurs). Ici, tout ce qui est plus ancien que STREAM_MARGIN mots est
+ * figé, et seule une petite fenêtre autour de la position actuelle est recalculée : coût quasi constant.
+ *
+ * Un aligneur correspond à UNE session d'écoute : si la transcription repart de zéro, il faut en créer un nouveau.
+ */
+export class StreamAligner {
+  private tPos: number; // premier mot attendu non figé
+  private sPos = 0; // premier mot dit non figé
+  private done: WordStatus[]; // statuts figés (longueur = tPos)
+
+  constructor(
+    private readonly target: string[],
+    startAt = 0,
+    head: WordStatus[] = [],
+  ) {
+    this.tPos = Math.min(startAt, target.length);
+    this.done = Array.from({ length: this.tPos }, (_, i) => head[i] ?? 'pending');
+  }
+
+  update(spoken: string[], opts: { provisionalLast?: boolean } = {}): WordStatus[] {
+    const tail = spoken.slice(this.sPos);
+    const t0 = this.tPos;
+    const win = this.target.slice(t0, t0 + tail.length + STREAM_SLACK);
+    const { status, spokenToTarget } = alignDetailed(win, tail, opts);
+
+    // Fige ce qui est assez ancien pour ne plus changer.
+    let frozen = 0;
+    const cut = tail.length - STREAM_MARGIN;
+    if (cut > 0) {
+      let last = -1;
+      for (let j = 0; j < cut; j++) last = Math.max(last, spokenToTarget[j]);
+      if (last >= 0) {
+        frozen = last + 1;
+        this.done.push(...status.slice(0, frozen));
+        this.tPos += frozen;
+        this.sPos += cut;
+      }
+    }
+    const pendingAfterWindow = this.target.length - (t0 + win.length);
+    return [...this.done, ...status.slice(frozen), ...new Array<WordStatus>(pendingAfterWindow).fill('pending')];
+  }
 }
 
 /** Résumé pour l'affichage et la progression. */

@@ -8,6 +8,7 @@ translittération avec les chiffres 3-7-9, « leviers » de racines communes, co
 - **114 sourates** complètes (texte arabe, traduction française), lisibles **hors ligne** une fois l'app chargée.
 - **Récitation vocale** : le bouton « Réciter » écoute la voix et colore chaque mot, **vert** si reconnu, **rouge** si faux ou sauté.
   La comparaison porte sur les mots (consonnes), pas sur les voyelles brèves ni le tajwid (limite des moteurs vocaux).
+- **Récitation continue** : réciter un groupe de versets ou toute la sourate d'une traite (barre de suivi collée en bas, la page suit le verset en cours). Toucher un mot reprend à partir de celui-ci.
 - **14 récitateurs** (Alafasy, As-Sudais, Ash-Shuraym, Al-Muaiqly, Al-Husary dont la version pédagogique « Muallim »,
   Abdul Basit, Al-Minshawi…), boucle 1×/3×/5× par verset.
 - **Marquage Hizb** : marqueurs ۞ dans le texte (début de Hizb, ¼, ½, ¾), vue des 60 Hizb / 240 quarts avec suivi et accès direct au texte.

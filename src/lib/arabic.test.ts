@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { alignFrom, alignRecitation, normalizeArabic, summarize, tokenizeSpoken, tokenizeVerse } from './arabic';
+import { StreamAligner, alignFrom, alignRecitation, normalizeArabic, summarize, tokenizeSpoken, tokenizeVerse } from './arabic';
 
 const FATIHA_2 = 'ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ';
 const IKHLAS_1 = 'قُلْ هُوَ ٱللَّهُ أَحَدٌ';
@@ -126,4 +126,72 @@ describe('alignFrom : reprendre à partir d\'un mot', () => {
   it('un mot faux à la reprise est rouge, les mots figés ne changent pas', () => {
     expect(alignFrom(target, 1, ['ok'], tokenizeSpoken('هو ربي احد'))).toEqual(['ok', 'ok', 'wrong', 'ok']);
   });
+});
+
+describe('StreamAligner : récitation longue au fil de l\'eau', () => {
+  const load = (n: number) => (JSON.parse(readFileSync(new URL(`../../public/data/surah/${n}.json`, import.meta.url), 'utf8')).verses as { n: number; ar: string }[]);
+  const wordsOf = (n: number, from = 1, to = 9999) => load(n).filter((v) => v.n >= from && v.n <= to).flatMap((v) => tokenizeVerse(v.ar));
+  // Génère la parole du moteur : mots normalisés, avec quelques mots sautés / remplacés / ajoutés (déterministe).
+  const speak = (target: string[], every = 0) =>
+    target.flatMap((w, i) => {
+      const t = normalizeArabic(w);
+      if (every && i % every === every - 1) return []; // mot avalé
+      return [t];
+    });
+  const feed = (agg: StreamAligner, spoken: string[], step: number) => {
+    let last: ReturnType<StreamAligner['update']> = [];
+    for (let k = step; k < spoken.length + step; k += step) last = agg.update(spoken.slice(0, Math.min(k, spoken.length)));
+    return last;
+  };
+
+  it('récitation exacte de la Fatiha : tout est vert', () => {
+    const target = wordsOf(1);
+    const st = feed(new StreamAligner(target), speak(target), 1);
+    expect(st).toHaveLength(target.length);
+    expect(st.every((s) => s === 'ok')).toBe(true);
+  });
+
+  it('même résultat que la comparaison complète sur une longue récitation', () => {
+    const target = wordsOf(2, 1, 40);
+    const spoken = speak(target, 17); // un mot avalé toutes les 17 mots
+    const full = alignRecitation(target, spoken);
+    const stream = feed(new StreamAligner(target), spoken, 3);
+    expect(stream).toEqual(full);
+    expect(stream.filter((s) => s === 'wrong').length).toBe(Math.floor(target.length / 17));
+  });
+
+  it("la récitation n'est pas terminée : la suite reste en attente", () => {
+    const target = wordsOf(2, 1, 20);
+    const half = speak(target).slice(0, 60);
+    const st = new StreamAligner(target).update(half);
+    expect(st.slice(0, 60).every((s) => s === 'ok')).toBe(true);
+    expect(st.slice(60).every((s) => s === 'pending')).toBe(true);
+  });
+
+  it("reprise au milieu d'une longue récitation : le passé est figé, la suite est comparée", () => {
+    const target = wordsOf(2, 1, 20);
+    const head = target.slice(0, 50).map(() => 'ok' as const);
+    const st = feed(new StreamAligner(target, 50, head), speak(target).slice(50, 90), 4);
+    expect(st.slice(0, 90).every((s) => s === 'ok')).toBe(true);
+    expect(st[90]).toBe('pending');
+  });
+
+  it('performance : Al-Baqarah entière (~6000 mots), mise à jour toutes les 2 mots', () => {
+    const target = wordsOf(2);
+    const spoken = speak(target, 31);
+    const agg = new StreamAligner(target);
+    const t0 = performance.now();
+    let worst = 0;
+    let st: ReturnType<StreamAligner['update']> = [];
+    for (let k = 2; k <= spoken.length + 2; k += 2) {
+      const a = performance.now();
+      st = agg.update(spoken.slice(0, Math.min(k, spoken.length)));
+      worst = Math.max(worst, performance.now() - a);
+    }
+    const total = performance.now() - t0;
+    expect(st).toHaveLength(target.length);
+    expect(st.filter((s) => s === 'ok').length).toBeGreaterThan(target.length * 0.9);
+    console.log(`Al-Baqarah : ${target.length} mots, total ${Math.round(total)} ms, pire mise à jour ${worst.toFixed(1)} ms`);
+    expect(worst).toBeLessThan(150); // reste fluide sur un téléphone (bien plus lent qu'un PC)
+  }, 60000);
 });

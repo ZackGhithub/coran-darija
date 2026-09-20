@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Enriched, Meta, Quarter, Verse } from '../types';
 import { getEnriched, loadSurah } from '../lib/data';
-import { alignFrom, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
+import { StreamAligner, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
 import { hizbRangeOfSurah, indexQuarters, markerFor, quarterKey } from '../lib/hizb';
 import type { VerseStat } from '../lib/storage';
 import { useAudio } from '../hooks/useAudio';
@@ -25,6 +25,17 @@ interface Props {
 }
 
 const STYLE_LABEL = { murattal: 'Murattal', mujawwad: 'Mujawwad', muallim: 'Pédagogique' } as const;
+const NO_STATUS: WordStatus[] = [];
+
+/** Une session de récitation vocale : un verset ou une suite de versets, comparés comme un seul texte continu. */
+interface VoiceCfg {
+  from: number;
+  to: number;
+  verseNums: number[];
+  offsets: number[]; // index du premier mot de chaque verset dans le texte continu (+ total à la fin)
+  startAt: number; // mot de départ (reprise)
+  aligner: StreamAligner;
+}
 
 export default function Recitation(p: Props) {
   const { meta, surahNum } = p;
@@ -32,10 +43,8 @@ export default function Recitation(p: Props) {
   const [verses, setVerses] = useState<Verse[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [collapse, setCollapse] = useState<{ n: number; open: boolean }>({ n: 0, open: false });
-  const [voiceVerse, setVoiceVerse] = useState<number | null>(null);
-  // « Reprendre à ce mot » : index du premier mot comparé, et statuts des mots précédents (figés)
-  const [startAt, setStartAt] = useState(0);
-  const [frozen, setFrozen] = useState<WordStatus[]>([]);
+  const [range, setRange] = useState({ from: 1, to: surah.verses });
+  const [cfg, setCfg] = useState<VoiceCfg | null>(null);
   const wasListening = useRef(false);
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
@@ -45,13 +54,13 @@ export default function Recitation(p: Props) {
   const enriched = useMemo(() => getEnriched(surahNum), [surahNum]);
   const hizb = useMemo(() => hizbRangeOfSurah(meta.quarters, surahNum, surah.verses), [meta.quarters, surahNum, surah.verses]);
 
+  // Changement de sourate : on repart de zéro
   useEffect(() => {
     let alive = true;
     setVerses(null);
     setLoadError(null);
-    setVoiceVerse(null);
-    setStartAt(0);
-    setFrozen([]);
+    setCfg(null);
+    setRange({ from: 1, to: surah.verses });
     audio.stop();
     speech.stop();
     loadSurah(surahNum)
@@ -74,22 +83,60 @@ export default function Recitation(p: Props) {
     if (audio.playing) document.getElementById(`v-${audio.playing.verse}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [audio.playing]);
 
-  const activeVerse = verses?.find((v) => v.n === voiceVerse) ?? null;
-  const statuses: WordStatus[] = useMemo(() => {
-    if (!activeVerse) return [];
-    return alignFrom(tokenizeVerse(activeVerse.ar), startAt, frozen, tokenizeSpoken(speech.transcript), { provisionalLast: speech.interim });
-  }, [activeVerse, startAt, frozen, speech.transcript, speech.interim]);
-  const summary = summarize(statuses);
+  // --- Comparaison de ce qui est dit avec le texte -------------------------------------------------------------
+  const spoken = useMemo(() => tokenizeSpoken(speech.transcript), [speech.transcript]);
+  const statuses = useMemo(
+    () => (cfg ? cfg.aligner.update(spoken, { provisionalLast: speech.interim }) : NO_STATUS),
+    [cfg, spoken, speech.interim],
+  );
+  const summary = useMemo(() => summarize(statuses), [statuses]);
 
-  // Récitation parfaite : on arrête le micro tout seul
+  /** Statuts découpés par verset ; on garde le même tableau tant qu'il ne change pas (évite de redessiner tous les versets). */
+  const sliceCache = useRef(new Map<number, WordStatus[]>());
+  const slices = useMemo(() => {
+    const out = new Map<number, WordStatus[]>();
+    if (!cfg) {
+      sliceCache.current.clear();
+      return out;
+    }
+    cfg.verseNums.forEach((n, i) => {
+      const s = statuses.slice(cfg.offsets[i], cfg.offsets[i + 1]);
+      const old = sliceCache.current.get(n);
+      const same = old && old.length === s.length && old.every((x, k) => x === s[k]);
+      const use = same ? old : s;
+      sliceCache.current.set(n, use);
+      out.set(n, use);
+    });
+    return out;
+  }, [cfg, statuses]);
+
+  /** Verset en cours de récitation : premier mot pas encore traité, à partir du point de départ. */
+  const currentVerse = useMemo(() => {
+    if (!cfg) return null;
+    const k = statuses.findIndex((s, i) => i >= cfg.startAt && s === 'pending');
+    if (k < 0) return cfg.verseNums[cfg.verseNums.length - 1];
+    const i = cfg.offsets.findIndex((o, idx) => k >= o && k < cfg.offsets[idx + 1]);
+    return cfg.verseNums[Math.max(i, 0)];
+  }, [cfg, statuses]);
+
+  // Récitation longue : la page suit le verset en cours
+  const multi = !!cfg && cfg.verseNums.length > 1;
   useEffect(() => {
-    if (summary.perfect && speech.listening) speech.stop();
-  }, [summary.perfect, speech.listening, speech.stop]);
+    if (multi && speech.listening && currentVerse != null) {
+      document.getElementById(`v-${currentVerse}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [multi, speech.listening, currentVerse]);
 
-  // Fin d'écoute : on enregistre le résultat du verset. Court délai : le moteur peut encore rendre les derniers mots
-  // après « Terminer ». On lit alors les valeurs les plus récentes via une référence.
-  const latest = useRef({ summary, verse: activeVerse, stats: p.verseStats });
-  latest.current = { summary, verse: activeVerse, stats: p.verseStats };
+  // Dernier mot atteint : on arrête le micro tout seul
+  const reachedEnd = statuses.length > 0 && statuses[statuses.length - 1] === 'ok';
+  useEffect(() => {
+    if (reachedEnd && speech.listening) speech.stop();
+  }, [reachedEnd, speech.listening, speech.stop]);
+
+  // Fin d'écoute : on enregistre le résultat de chaque verset traité. Court délai : le moteur peut encore rendre
+  // les derniers mots après « Terminer ». On lit alors les valeurs les plus récentes via une référence.
+  const latest = useRef({ cfg, statuses, stats: p.verseStats, surahNum });
+  latest.current = { cfg, statuses, stats: p.verseStats, surahNum };
   useEffect(() => {
     if (speech.listening) {
       wasListening.current = true;
@@ -98,35 +145,68 @@ export default function Recitation(p: Props) {
     if (!wasListening.current) return;
     wasListening.current = false;
     window.setTimeout(() => {
-      const { summary: s, verse, stats } = latest.current;
-      if (!verse || s.ok + s.wrong === 0) return;
-      const key = quarterKey(surahNum, verse.n);
-      const prev = stats[key];
-      p.onVerseStat(key, {
-        attempts: (prev?.attempts ?? 0) + 1,
-        perfect: (prev?.perfect ?? 0) + (s.perfect ? 1 : 0),
-        bestOk: Math.max(prev?.bestOk ?? 0, s.ok),
-        total: s.total,
-        last: Date.now(),
+      const { cfg: c, statuses: st, stats, surahNum: sn } = latest.current;
+      if (!c) return;
+      c.verseNums.forEach((n, i) => {
+        const s = st.slice(c.offsets[i], c.offsets[i + 1]);
+        const attempted = s.filter((x) => x !== 'pending').length;
+        // Un verset seul compte dès qu'un mot est traité ; dans une suite, seuls les versets menés jusqu'au bout comptent.
+        if (attempted === 0 || (c.verseNums.length > 1 && attempted < s.length)) return;
+        const ok = s.filter((x) => x === 'ok').length;
+        const key = quarterKey(sn, n);
+        const prev = stats[key];
+        p.onVerseStat(key, {
+          attempts: (prev?.attempts ?? 0) + 1,
+          perfect: (prev?.perfect ?? 0) + (ok === s.length ? 1 : 0),
+          bestOk: Math.max(prev?.bestOk ?? 0, ok),
+          total: s.length,
+          last: Date.now(),
+        });
       });
     }, 700);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speech.listening]);
 
-  const startVoice = (n: number, fromWord = 0) => {
-    audio.stop();
-    // Reprise au mot k du verset déjà en cours : on garde les statuts des mots précédents
-    setFrozen(fromWord > 0 && n === voiceVerse ? statuses.slice(0, fromWord) : []);
-    setStartAt(fromWord);
-    setVoiceVerse(n);
-    speech.start(); // remet le moteur et le texte reconnu à zéro
-  };
+  // --- Actions (stables : les versets ne sont redessinés que si leurs propres données changent) --------------------
+  const act = useRef({ verses, cfg, statuses, audio, speech, surahNum });
+  act.current = { verses, cfg, statuses, audio, speech, surahNum };
 
+  /** Démarre la récitation vocale d'un verset ou d'une suite ; `fromWord` reprend au mot k de la même suite. */
+  const startVoice = useCallback((from: number, to: number, fromWord = 0) => {
+    const a = act.current;
+    const vs = a.verses?.filter((v) => v.n >= from && v.n <= to) ?? [];
+    if (!vs.length) return;
+    const words: string[] = [];
+    const offsets = [0];
+    vs.forEach((v) => {
+      words.push(...tokenizeVerse(v.ar));
+      offsets.push(words.length);
+    });
+    const same = !!a.cfg && a.cfg.from === from && a.cfg.to === to;
+    const start = same ? fromWord : 0; // on ne reprend qu'à l'intérieur de la suite déjà en cours
+    const head = start > 0 ? a.statuses.slice(0, start) : [];
+    setCfg({ from, to, verseNums: vs.map((v) => v.n), offsets, startAt: start, aligner: new StreamAligner(words, start, head) });
+    a.audio.stop();
+    a.speech.start(); // remet le moteur et le texte reconnu à zéro
+  }, []);
+
+  const stopVoice = useCallback(() => act.current.speech.stop(), []);
+  const onVerseVoice = useCallback((n: number) => startVoice(n, n), [startVoice]);
+  const onWordTap = useCallback(
+    (n: number, idx: number) => {
+      const c = act.current.cfg;
+      const i = c ? c.verseNums.indexOf(n) : -1;
+      if (c && i >= 0) startVoice(c.from, c.to, c.offsets[i] + idx);
+    },
+    [startVoice],
+  );
   // Le micro ne doit pas « entendre » le récitateur : on coupe l'écoute avant de lancer l'audio.
-  const playVerses = (verseNums: number[]) => {
-    speech.stop();
-    audio.playVerses(surahNum, verseNums);
-  };
+  const playVerses = useCallback((verseNums: number[]) => {
+    const a = act.current;
+    a.speech.stop();
+    a.audio.playVerses(a.surahNum, verseNums);
+  }, []);
+  const onPlayVerse = useCallback((n: number) => playVerses([n]), [playVerses]);
 
   /** « Aller au verset » : défilement vers le verset, avec un bref halo pour le repérer. */
   const jumpTo = (n: number) => {
@@ -140,9 +220,11 @@ export default function Recitation(p: Props) {
   const isLearned = p.learned.includes(surahNum);
   const playingVerse = audio.playing?.surah === surahNum ? audio.playing.verse : null;
   const groups = (['murattal', 'muallim', 'mujawwad'] as const).map((s) => ({ s, list: meta.reciters.filter((r) => r.style === s) })).filter((g) => g.list.length);
+  const verseOptions = Array.from({ length: surah.verses }, (_, i) => i + 1);
+  const heard = speech.transcript.split(/\s+/).filter(Boolean).slice(-10).join(' ');
 
   return (
-    <main className="tab-content fade-in">
+    <main className={`tab-content fade-in ${cfg ? 'has-voice-bar' : ''}`}>
       <div className="jump-bar">
         <select className="surah-select" value={surahNum} onChange={(e) => p.onSurah(Number(e.target.value))} aria-label="Choisir la sourate">
           {meta.surahs.map((s) => (
@@ -159,7 +241,7 @@ export default function Recitation(p: Props) {
           aria-label="Aller au verset"
         >
           <option value="">Verset…</option>
-          {Array.from({ length: surah.verses }, (_, i) => i + 1).map((n) => (
+          {verseOptions.map((n) => (
             <option key={n} value={n}>Verset {n}</option>
           ))}
         </select>
@@ -172,7 +254,7 @@ export default function Recitation(p: Props) {
           <span className="pill-badge">{surah.verses} versets</span>
           <span className="pill-badge">{surah.type}</span>
           <span className="pill-badge">{hizb.from === hizb.to ? `Hizb ${hizb.from}` : `Hizb ${hizb.from} → ${hizb.to}`}</span>
-          <button className={`pill-badge pill-btn ${isLearned ? 'is-learned' : ''}`} onClick={() => p.onToggleLearned(surahNum)} aria-pressed={isLearned}>
+          <button className={`pill-btn pill-badge ${isLearned ? 'is-learned' : ''}`} onClick={() => p.onToggleLearned(surahNum)} aria-pressed={isLearned}>
             {isLearned ? 'Mémorisée 🟢' : 'Marquer comme apprise ⚪'}
           </button>
         </div>
@@ -212,6 +294,34 @@ export default function Recitation(p: Props) {
         </div>
       </div>
 
+      <div className="range-bar">
+        <span className="range-title">🎤 Récitation continue</span>
+        <label className="range-field">
+          <span>du verset</span>
+          <select className="surah-select" value={range.from} onChange={(e) => { const from = Number(e.target.value); setRange((r) => ({ from, to: Math.max(r.to, from) })); }} aria-label="Premier verset à réciter">
+            {verseOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </label>
+        <label className="range-field">
+          <span>au verset</span>
+          <select className="surah-select" value={range.to} onChange={(e) => { const to = Number(e.target.value); setRange((r) => ({ from: Math.min(r.from, to), to })); }} aria-label="Dernier verset à réciter">
+            {verseOptions.filter((n) => n >= range.from).map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </label>
+        <button className="btn-action-compact" onClick={() => setRange({ from: 1, to: surah.verses })}>Toute la sourate</button>
+        <button
+          className="btn btn-primary"
+          disabled={!verses || !speech.supported || speech.listening}
+          title={speech.supported ? undefined : 'Reconnaissance vocale indisponible sur ce navigateur'}
+          onClick={() => {
+            if (verses) jumpTo(range.from);
+            startVoice(range.from, range.to);
+          }}
+        >
+          🎤 Démarrer
+        </button>
+      </div>
+
       {audio.error && <div className="notice notice-error" role="alert">{audio.error}</div>}
 
       {surahNum !== 1 && surahNum !== 9 && (
@@ -224,60 +334,87 @@ export default function Recitation(p: Props) {
       {verses?.map((v) => (
         <VerseBlock
           key={v.n}
-          surahNum={surahNum}
           verse={v}
           quarter={quarterIdx.get(quarterKey(surahNum, v.n))}
           enriched={enriched?.get(v.n)}
-          fontSize={p.fontSize}
-          playing={playingVerse === v.n}
-          onPlay={() => playVerses([v.n])}
           collapse={collapse}
           stat={p.verseStats[quarterKey(surahNum, v.n)]}
-          voice={
-            voiceVerse === v.n
-              ? { listening: speech.listening, statuses, summary, supported: speech.supported, error: speech.error, transcript: speech.transcript }
-              : null
-          }
-          onVoiceStart={() => startVoice(v.n)}
-          onVoiceStop={speech.stop}
-          onVoiceReset={() => startVoice(v.n)}
-          onWordTap={(idx) => startVoice(v.n, idx)}
-          resumeFrom={voiceVerse === v.n ? startAt : 0}
+          playing={playingVerse === v.n}
+          slice={slices.get(v.n)}
+          listening={speech.listening && slices.has(v.n)}
           voiceSupported={speech.supported}
+          onPlay={onPlayVerse}
+          onVoiceStart={onVerseVoice}
+          onVoiceStop={stopVoice}
+          onWordTap={onWordTap}
         />
       ))}
+
+      {cfg && (
+        <div className="voice-bar" role="status" aria-live="polite">
+          <div className="voice-bar-row">
+            <span className="voice-bar-state">
+              {speech.listening ? <><span className="rec-dot" aria-hidden="true" />À l&apos;écoute</> : 'Terminé'}
+            </span>
+            <span className="voice-bar-where">
+              {cfg.from === cfg.to ? `Verset ${cfg.from}` : `Versets ${cfg.from}–${cfg.to}`}
+              {speech.listening && multi && currentVerse != null ? ` · en cours : ${currentVerse}` : ''}
+            </span>
+            <span className="w-ok-txt"><strong>✓ {summary.ok}</strong></span>
+            <span className="w-wrong-txt"><strong>✗ {summary.wrong}</strong></span>
+            <span className="muted">/ {summary.total} mots</span>
+            <span className="voice-bar-actions">
+              {speech.listening ? (
+                <button className="btn voice-on" onClick={stopVoice}>⏹ Terminer</button>
+              ) : (
+                <>
+                  <button className="btn btn-primary" onClick={() => startVoice(cfg.from, cfg.to)}>↻ Recommencer</button>
+                  <button className="btn" onClick={() => setCfg(null)}>Fermer</button>
+                </>
+              )}
+            </span>
+          </div>
+          <div className="progress-track small"><div className="progress-fill" style={{ width: `${summary.total ? ((summary.ok + summary.wrong) / summary.total) * 100 : 0}%` }} /></div>
+          {speech.error ? (
+            <div className="voice-error">{speech.error}</div>
+          ) : (
+            !speech.listening && summary.ok + summary.wrong === 0 && <div>Aucune parole détectée. Appuyez sur « Recommencer » et parlez près du micro.</div>
+          )}
+          {!speech.listening && summary.total > 0 && summary.ok === summary.total && <div className="voice-perfect">✓ Bravo, récitation sans faute ({summary.total} mots).</div>}
+          {heard && (
+            <div className="voice-heard">
+              Entendu : <bdi lang="ar" dir="rtl">{heard}</bdi>
+            </div>
+          )}
+          <div className="voice-hint">
+            Touchez un mot pour reprendre à partir de celui-ci. Vérifie les mots récités, pas les voyelles ni le tajwid.
+            {isStandaloneIOS() && ' Sur iPhone/iPad, la reconnaissance vocale peut ne pas marcher depuis l’écran d’accueil : ouvrez l’app dans Safari.'}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
 interface BlockProps {
-  surahNum: number;
   verse: Verse;
   quarter?: Quarter;
   enriched?: Enriched;
-  fontSize: number;
-  playing: boolean;
-  onPlay: () => void;
   collapse: { n: number; open: boolean };
   stat?: VerseStat;
-  voice: {
-    listening: boolean;
-    statuses: WordStatus[];
-    summary: ReturnType<typeof summarize>;
-    supported: boolean;
-    error: string | null;
-    transcript: string;
-  } | null;
+  playing: boolean;
+  /** Statuts des mots de ce verset ; défini seulement si le verset fait partie de la récitation en cours. */
+  slice?: WordStatus[];
+  listening: boolean;
   voiceSupported: boolean;
-  onVoiceStart: () => void;
+  onPlay: (n: number) => void;
+  onVoiceStart: (n: number) => void;
   onVoiceStop: () => void;
-  onVoiceReset: () => void;
-  onWordTap: (wordIndex: number) => void;
-  resumeFrom: number;
+  onWordTap: (n: number, idx: number) => void;
 }
 
-function VerseBlock(p: BlockProps) {
-  const { verse: v, enriched: e, voice } = p;
+const VerseBlock = memo(function VerseBlock(p: BlockProps) {
+  const { verse: v, enriched: e, slice } = p;
   const marker = p.quarter ? markerFor(p.quarter.q) : null;
   const segments = useMemo(() => splitVerse(v.ar), [v.ar]);
 
@@ -301,11 +438,16 @@ function VerseBlock(p: BlockProps) {
                 {p.stat.perfect > 0 ? '✓' : '·'} {p.stat.perfect}/{p.stat.attempts}
               </span>
             )}
-            <button className="verse-play-btn" onClick={p.onPlay}>▶ Écouter</button>
-            {voice?.listening ? (
+            <button className="verse-play-btn" onClick={() => p.onPlay(v.n)}>▶ Écouter</button>
+            {p.listening ? (
               <button className="verse-play-btn voice-on" onClick={p.onVoiceStop}>⏹ Terminer</button>
             ) : (
-              <button className="verse-play-btn voice-btn" onClick={p.onVoiceStart} disabled={!p.voiceSupported} title={p.voiceSupported ? 'Réciter ce verset à voix haute' : 'Reconnaissance vocale indisponible sur ce navigateur'}>
+              <button
+                className="verse-play-btn voice-btn"
+                onClick={() => p.onVoiceStart(v.n)}
+                disabled={!p.voiceSupported}
+                title={p.voiceSupported ? 'Réciter ce verset à voix haute' : 'Reconnaissance vocale indisponible sur ce navigateur'}
+              >
                 🎤 Réciter
               </button>
             )}
@@ -314,67 +456,34 @@ function VerseBlock(p: BlockProps) {
 
         <div className="arabic-text" lang="ar" dir="rtl">
           {segments.map((s, i) => {
-            const st = voice && s.idx != null ? voice.statuses[s.idx] : undefined;
-            const cls = [st && st !== 'pending' ? `w-${st}` : '', voice && s.idx != null ? 'w-tap' : ''].filter(Boolean).join(' ');
-            // Les mots ne sont cliquables que dans le verset en cours de récitation (pas d'appui accidentel en défilant)
-            if (voice && s.idx != null) {
+            const st = slice && s.idx != null ? slice[s.idx] : undefined;
+            const color = st && st !== 'pending' ? `w-${st}` : '';
+            // Les mots ne sont touchables que dans la récitation en cours (pas d'appui accidentel en faisant défiler)
+            if (slice && s.idx != null) {
               const idx = s.idx;
               return (
                 <span
                   key={i}
-                  className={cls}
+                  className={`${color} w-tap`.trim()}
                   data-w={idx}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Reprendre à partir du mot ${idx + 1}`}
-                  onClick={() => p.onWordTap(idx)}
-                  onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), p.onWordTap(idx))}
+                  aria-label={`Reprendre à partir du mot ${idx + 1} du verset ${v.n}`}
+                  onClick={() => p.onWordTap(v.n, idx)}
+                  onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && (ev.preventDefault(), p.onWordTap(v.n, idx))}
                 >
                   {s.text}{' '}
                 </span>
               );
             }
             return (
-              <span key={i} className={cls || undefined}>
+              <span key={i} className={color || undefined}>
                 {s.text}{' '}
               </span>
             );
           })}
           {v.sajda === 1 && <span className="sajda" title="Prosternation de récitation">۩</span>}
         </div>
-
-        {voice && (
-          <div className="voice-panel" role="status" aria-live="polite">
-            {voice.error ? (
-              <span className="voice-error">{voice.error}</span>
-            ) : voice.listening ? (
-              <span><span className="rec-dot" aria-hidden="true" /> Je vous écoute… récitez le verset.</span>
-            ) : voice.summary.ok + voice.summary.wrong === 0 ? (
-              <span>Aucune parole détectée. Appuyez sur « Réciter » et parlez près du micro.</span>
-            ) : voice.summary.perfect ? (
-              <span className="voice-perfect">✓ Bravo, verset récité sans faute ({voice.summary.total} mots).</span>
-            ) : (
-              <span>
-                <strong className="w-ok-txt">{voice.summary.ok} juste(s)</strong> · <strong className="w-wrong-txt">{voice.summary.wrong} à revoir</strong>
-                {voice.summary.pending > 0 && <> · {voice.summary.pending} non récité(s)</>}
-              </span>
-            )}
-            {!voice.listening && (
-              <button className="btn-action-compact" onClick={p.onVoiceReset}>↻ Recommencer</button>
-            )}
-            {voice.transcript && (
-              <span className="voice-heard">
-                Entendu : <bdi lang="ar" dir="rtl">{voice.transcript}</bdi>
-              </span>
-            )}
-            <span className="voice-hint">
-              Touchez un mot pour reprendre à partir de celui-ci{p.resumeFrom > 0 ? ` (reprise au mot ${p.resumeFrom + 1})` : ''}. Vérifie les mots récités, pas les voyelles ni le tajwid.
-            </span>
-            {isStandaloneIOS() && (
-              <span className="voice-hint">Sur iPhone/iPad, la reconnaissance vocale peut ne pas marcher depuis l&apos;écran d&apos;accueil : ouvrez l&apos;app dans Safari.</span>
-            )}
-          </div>
-        )}
 
         {e ? (
           <>
@@ -399,7 +508,7 @@ function VerseBlock(p: BlockProps) {
       </article>
     </>
   );
-}
+});
 
 function Fold(props: { title: string; cls: string; collapse: { n: number; open: boolean }; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(!!props.defaultOpen);
