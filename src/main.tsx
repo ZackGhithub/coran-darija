@@ -7,6 +7,7 @@ import '@fontsource/noto-naskh-arabic/arabic-600.css';
 import '@fontsource/noto-naskh-arabic/arabic-700.css';
 import './legacy.css';
 import './styles.css';
+import './tajweed.css';
 import App from './App';
 
 createRoot(document.getElementById('root')!).render(

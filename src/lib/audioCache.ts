@@ -58,6 +58,15 @@ export function unlockAudio() {
   }
 }
 
+/** Règle la vitesse de lecture en gardant la hauteur de la voix (sinon le récitateur devient grave et déformé). */
+export function applyRate(a: HTMLAudioElement, rate: number) {
+  a.defaultPlaybackRate = rate;
+  a.playbackRate = rate;
+  const x = a as HTMLAudioElement & { preservesPitch?: boolean; webkitPreservesPitch?: boolean };
+  x.preservesPitch = true;
+  x.webkitPreservesPitch = true;
+}
+
 /** Charge à l'avance (sans attendre le résultat ni signaler d'erreur). */
 export function prefetchAudio(url: string) {
   audioBlobUrl(url).catch(() => {});

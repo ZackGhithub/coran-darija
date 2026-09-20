@@ -36,7 +36,7 @@ export interface VerseStat {
   last: number; // timestamp
 }
 
-export const PERSISTED_KEYS = ['learned', 'quarters', 'verseStats', 'theme', 'fontSize', 'surah', 'reciter', 'repeat', 'tempo', 'hifz', 'hifzSel', 'marks'] as const;
+export const PERSISTED_KEYS = ['learned', 'quarters', 'verseStats', 'theme', 'fontSize', 'surah', 'reciter', 'repeat', 'tempo', 'hifz', 'hifzSel', 'marks', 'tajweed'] as const;
 
 /** Export de la progression : uniquement des numéros et des réglages, aucune donnée personnelle. */
 export function exportProgress(): string {

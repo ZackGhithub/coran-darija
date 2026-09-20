@@ -246,7 +246,7 @@ export default function App() {
           onOpen={(s, v) => openSurah(s, v)}
         />
       )}
-      {tab === 'guide' && <Guide />}
+      {tab === 'guide' && <Guide meta={meta} reciter={meta.reciters.find((r) => r.id === reciterId) ?? meta.reciters[0]} />}
       {tab === 'quiz' && <Quiz />}
 
       <footer>
@@ -257,7 +257,7 @@ export default function App() {
           <button className="btn-action-compact" onClick={() => fileInput.current?.click()}><Icon name="upload" /> Importer</button>
           <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(e) => { onImport(e.target.files?.[0]); e.target.value = ''; }} />
         </p>
-        <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com · Horodatage des mots : Quran.com</p>
+        <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com · Horodatage des mots et règles de Tajwid : Quran.com</p>
         <p className="foot-small">Version {__BUILD_ID__}</p>
       </footer>
 

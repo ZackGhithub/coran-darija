@@ -1,4 +1,10 @@
+import { useState } from 'react';
+import type { Meta, Reciter } from '../types';
 import Icon from './Icon';
+import TajweedSheet, { type SheetTarget } from './TajweedSheet';
+import { FAMILY_LABEL, RULES, ruleColorVar } from '../content/tajweedRules';
+
+const FAMILIES = [...new Set(RULES.map((r) => r.family))];
 
 const LETTERS: { code: string; ar: string; name: string; text: string }[] = [
   { code: '3', ar: 'ع', name: "'Ayn", text: 'Son pharyngé profond produit au milieu de la gorge (ex : 3ayn, 3sel, Rabbi l-3âlamîn).' },
@@ -29,7 +35,9 @@ const PITFALLS: { title: string; text: string }[] = [
   },
 ];
 
-export default function Guide() {
+export default function Guide({ meta, reciter }: { meta: Meta; reciter: Reciter }) {
+  const [sheet, setSheet] = useState<SheetTarget | null>(null);
+  const fallback = meta.reciters.find((r) => r.id === 'alafasy') ?? reciter;
   return (
     <section className="tab-content fade-in">
       <div className="guide-card">
@@ -66,6 +74,26 @@ export default function Guide() {
           ))}
         </div>
 
+        <h3 className="guide-title spaced"><Icon name="tajweed" /> Les règles du Tajwid</h3>
+        <p className="muted">
+          Touchez une règle pour la comprendre, l&apos;entendre dans la bouche d&apos;un récitant et voir comment la prononcer. Dans l&apos;onglet Récitation, le bouton
+          « Tajwid en couleur » colore ces règles dans le texte : touchez alors n&apos;importe quel mot coloré pour ouvrir sa fiche.
+        </p>
+        {FAMILIES.map((f) => (
+          <div key={f}>
+            <h4 className="tj-family">{FAMILY_LABEL[f]}</h4>
+            <div className="tj-rule-list">
+              {RULES.filter((r) => r.family === f).map((r) => (
+                <button key={r.code} className="tj-rule-row" onClick={() => setSheet({ kind: 'rule', code: r.code })}>
+                  <span className="tj-dot big" style={{ background: ruleColorVar(r.code), marginTop: 0 }} aria-hidden="true" />
+                  <span className="tj-name">{r.fr}</span>
+                  <span className="tj-ar" lang="ar" dir="rtl">{r.ar}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+
         <h3 className="guide-title spaced"><Icon name="mic" /> La récitation vocale</h3>
         <div className="pitfall-item">
           <p>
@@ -75,6 +103,7 @@ export default function Guide() {
           </p>
         </div>
       </div>
+      <TajweedSheet target={sheet} onClose={() => setSheet(null)} reciter={reciter} fallback={fallback} surahNames={meta.surahs.map((s) => s.fr)} />
     </section>
   );
 }

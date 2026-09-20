@@ -38,8 +38,8 @@ export default defineConfig({
       workbox: {
         // Tout le texte du Coran (~3 Mo) est préchargé : lecture complète hors ligne dès la première visite.
         globPatterns: ['**/*.{js,css,html,png,woff2,json}'],
-        // Les horodatages des mots (~5 Mo pour 7 récitateurs) ne sont PAS préchargés : téléchargés à la demande, puis gardés.
-        globIgnores: ['data/timing/**'],
+        // Les horodatages des mots (~5 Mo pour 7 récitateurs) et les couleurs du Tajwid (~0,8 Mo) ne sont PAS préchargés : téléchargés à la demande, puis gardés.
+        globIgnores: ['data/timing/**', 'data/tajweed/**'],
         navigateFallback: `${base}index.html`,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
@@ -47,6 +47,11 @@ export default defineConfig({
             urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/data/timing/'),
             handler: 'CacheFirst',
             options: { cacheName: 'timings', expiration: { maxEntries: 400 } },
+          },
+          {
+            urlPattern: ({ url }: { url: URL }) => url.pathname.includes('/data/tajweed/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'tajweed', expiration: { maxEntries: 130 } },
           },
           {
             // Audio lu par notre propre code (fetch) : gardé pour le hors-ligne. On exclut les requêtes de l'élément <audio>

@@ -1,0 +1,138 @@
+/* Tajwid : couleurs des 17 règles, légende et fiche explicative.
+   Chaque couleur existe en version claire et sombre, choisie pour rester lisible sur le fond de la carte du verset. */
+
+:root {
+  --tj-ham-wasl: #6b7280;
+  --tj-slnt: #78350f;
+  --tj-laam-shamsiyah: #0891b2;
+  --tj-madda-normal: #2563eb;
+  --tj-madda-permissible: #4338ca;
+  --tj-madda-obligatory: #9333ea;
+  --tj-madda-necessary: #c026d3;
+  --tj-qalaqah: #dc2626;
+  --tj-ghunnah: #15803d;
+  --tj-ikhafa: #ea580c;
+  --tj-ikhafa-shafawi: #c2410c;
+  --tj-iqlab: #a16207;
+  --tj-idgham-ghunnah: #0d9488;
+  --tj-idgham-wo-ghunnah: #0369a1;
+  --tj-idgham-shafawi: #65a30d;
+  --tj-idgham-mutajanisayn: #be185d;
+  --tj-idgham-mutaqaribayn: #9f1239;
+}
+:root[data-theme="dark"] {
+  --tj-ham-wasl: #9ca3af;
+  --tj-slnt: #d6a26b;
+  --tj-laam-shamsiyah: #22d3ee;
+  --tj-madda-normal: #3b82f6;
+  --tj-madda-permissible: #818cf8;
+  --tj-madda-obligatory: #c084fc;
+  --tj-madda-necessary: #e879f9;
+  --tj-qalaqah: #f87171;
+  --tj-ghunnah: #4ade80;
+  --tj-ikhafa: #fb923c;
+  --tj-ikhafa-shafawi: #fdba74;
+  --tj-iqlab: #fbbf24;
+  --tj-idgham-ghunnah: #2dd4bf;
+  --tj-idgham-wo-ghunnah: #0ea5e9;
+  --tj-idgham-shafawi: #a3e635;
+  --tj-idgham-mutajanisayn: #f472b6;
+  --tj-idgham-mutaqaribayn: #fda4af;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tj-ham-wasl: #9ca3af;
+    --tj-slnt: #d6a26b;
+    --tj-laam-shamsiyah: #22d3ee;
+    --tj-madda-normal: #3b82f6;
+    --tj-madda-permissible: #818cf8;
+    --tj-madda-obligatory: #c084fc;
+    --tj-madda-necessary: #e879f9;
+    --tj-qalaqah: #f87171;
+    --tj-ghunnah: #4ade80;
+    --tj-ikhafa: #fb923c;
+    --tj-ikhafa-shafawi: #fdba74;
+    --tj-iqlab: #fbbf24;
+    --tj-idgham-ghunnah: #2dd4bf;
+    --tj-idgham-wo-ghunnah: #0ea5e9;
+    --tj-idgham-shafawi: #a3e635;
+    --tj-idgham-mutajanisayn: #f472b6;
+    --tj-idgham-mutaqaribayn: #fda4af;
+  }
+}
+
+.tj-ham-wasl { color: var(--tj-ham-wasl); }
+.tj-slnt { color: var(--tj-slnt); }
+.tj-laam-shamsiyah { color: var(--tj-laam-shamsiyah); }
+.tj-madda-normal { color: var(--tj-madda-normal); }
+.tj-madda-permissible { color: var(--tj-madda-permissible); }
+.tj-madda-obligatory { color: var(--tj-madda-obligatory); }
+.tj-madda-necessary { color: var(--tj-madda-necessary); }
+.tj-qalaqah { color: var(--tj-qalaqah); }
+.tj-ghunnah { color: var(--tj-ghunnah); }
+.tj-ikhafa { color: var(--tj-ikhafa); }
+.tj-ikhafa-shafawi { color: var(--tj-ikhafa-shafawi); }
+.tj-iqlab { color: var(--tj-iqlab); }
+.tj-idgham-ghunnah { color: var(--tj-idgham-ghunnah); }
+.tj-idgham-wo-ghunnah { color: var(--tj-idgham-wo-ghunnah); }
+.tj-idgham-shafawi { color: var(--tj-idgham-shafawi); }
+.tj-idgham-mutajanisayn { color: var(--tj-idgham-mutajanisayn); }
+.tj-idgham-mutaqaribayn { color: var(--tj-idgham-mutaqaribayn); }
+
+/* Mot contenant une règle : touchable */
+.tj-word { cursor: pointer; border-radius: 8px; -webkit-tap-highlight-color: transparent; transition: background 0.12s; }
+.tj-word:hover, .tj-word:focus-visible { background: var(--bg-elevated); outline: none; }
+.tj-word:focus-visible { box-shadow: 0 0 0 2px var(--emerald-primary); }
+.tj-dot { display: inline-block; width: 0.75em; height: 0.75em; border-radius: 50%; flex: none; }
+.tj-dot.big { width: 1.1rem; height: 1.1rem; margin-top: 0.55rem; }
+.btn-action-compact.on { background: var(--emerald-primary); border-color: var(--emerald-primary); color: #fff; }
+
+/* Légende : règles présentes dans la sourate */
+.tj-legend { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px; }
+.tj-legend-title { display: flex; align-items: center; gap: 0.5em; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+.tj-legend-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tj-chip { display: inline-flex; align-items: center; gap: 0.5em; min-height: 36px; padding: 4px 12px; border-radius: 18px; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+.tj-chip:hover { border-color: var(--border-focus); }
+
+/* Fiche explicative (en bas de l'écran) */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 680px; max-height: 90vh; display: flex; flex-direction: column; background: var(--bg-card); color: var(--text-primary); border-radius: 20px 20px 0 0; box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3); padding-bottom: env(safe-area-inset-bottom); animation: sheet-up 0.22s ease-out; }
+@keyframes sheet-up { from { transform: translateY(28px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border-subtle); }
+.sheet-head h2 { display: flex; align-items: center; gap: 0.5em; font-size: 1.05rem; }
+.sheet-close { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer; }
+.sheet-body { overflow-y: auto; padding: 14px 16px 22px; -webkit-overflow-scrolling: touch; }
+.sheet-word { font-family: var(--font-quran); font-size: 2.6rem; font-weight: 700; line-height: 2; text-align: center; padding: 6px 10px; margin-bottom: 10px; border-radius: 14px; background: var(--bg-elevated); }
+.sheet-word .tj-focus { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 10px; }
+.sheet-tabs { margin-bottom: 12px; justify-content: center; }
+.sheet-tabs .chip { display: inline-flex; align-items: center; gap: 0.5em; }
+.sheet-rule-title { display: flex; gap: 10px; align-items: flex-start; }
+.sheet-rule-title h3 { font-size: 1.15rem; line-height: 1.3; }
+.sheet-ar { text-align: left; font-family: var(--font-quran); font-size: 1.4rem; font-weight: 700; margin: 2px 0; }
+.sheet-summary { margin: 8px 0 4px; font-weight: 600; }
+.sheet-block { margin: 16px 0; }
+.sheet-block h4 { display: flex; align-items: center; gap: 0.45em; font-size: 0.95rem; margin-bottom: 6px; color: var(--emerald-primary); }
+.sheet-block p { line-height: 1.6; }
+.sheet-why { background: var(--gold-bg); border: 1px solid var(--gold-border); border-radius: var(--radius-md); padding: 10px 14px; }
+.sheet-why h4 { color: var(--gold-accent); }
+.sheet-why p + p { margin-top: 6px; }
+.sheet-steps, .sheet-list { padding-left: 1.3em; display: grid; gap: 6px; line-height: 1.55; }
+.sheet-darija { display: flex; gap: 0.5em; align-items: flex-start; margin-top: 10px; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--emerald-light); color: var(--emerald-text); font-size: 0.9rem; }
+.sheet-audio { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 8px 0; }
+.sheet-rec { font-size: 0.8rem; }
+.sheet-examples-title { margin: 14px 0 4px; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
+.sheet-examples { list-style: none; }
+.sheet-examples li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); }
+.ex-play { width: 44px; height: 44px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--emerald-primary); background: var(--emerald-light); color: var(--emerald-primary); cursor: pointer; }
+.ex-word { font-family: var(--font-quran); font-size: 1.7rem; font-weight: 700; flex: 1; text-align: right; }
+.ex-ref { font-size: 0.78rem; white-space: nowrap; }
+.sheet-note { display: flex; gap: 0.5em; align-items: flex-start; margin-top: 18px; font-size: 0.8rem; color: var(--text-muted); }
+
+/* Liste des règles (onglet Guide) */
+.tj-family { margin: 16px 0 6px; font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); }
+.tj-rule-list { display: grid; gap: 8px; }
+.tj-rule-row { display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 14px; min-height: 52px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-primary); font: inherit; cursor: pointer; }
+.tj-rule-row:hover { border-color: var(--border-focus); }
+.tj-rule-row .tj-name { flex: 1; font-weight: 600; }
+.tj-rule-row .tj-ar { font-family: var(--font-quran); font-size: 1.2rem; font-weight: 700; }

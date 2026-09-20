@@ -162,12 +162,9 @@ export function alignRecitation(target: string[], spoken: string[], opts: { prov
 }
 
 /** Découpe l'affichage d'un verset : chaque segment porte l'index du mot à colorier (null pour les signes de pause). */
-export function splitVerse(text: string): { text: string; idx: number | null }[] {
+export function splitVerse(text: string): { text: string; idx: number | null; start: number }[] {
   let idx = 0;
-  return text
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((t) => (normalizeArabic(t).length > 0 ? { text: t, idx: idx++ } : { text: t, idx: null }));
+  return [...text.matchAll(/\S+/g)].map((m) => ({ text: m[0], start: m.index ?? 0, idx: normalizeArabic(m[0]).length > 0 ? idx++ : null }));
 }
 
 /**

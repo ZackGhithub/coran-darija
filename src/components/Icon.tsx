@@ -14,6 +14,11 @@ import {
   Dot,
   Download,
   Eye,
+  GraduationCap,
+  Info,
+  Palette,
+  Turtle,
+  Volume2,
   Gauge,
   Heart,
   Languages,
@@ -92,6 +97,12 @@ const ICONS = {
   minus: Minus,
   plus: Plus,
   dot: Dot,
+  tajweed: GraduationCap,
+  info: Info,
+  palette: Palette,
+  slow: Turtle,
+  sound: Volume2,
+  close: X,
 } as const;
 
 export type IconName = keyof typeof ICONS;

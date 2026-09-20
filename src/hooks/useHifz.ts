@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Reciter } from '../types';
 import { ayahUrl } from './useAudio';
-import { audioBlobUrl, prefetchAudio, sharedAudio, unlockAudio } from '../lib/audioCache';
+import { applyRate, audioBlobUrl, prefetchAudio, sharedAudio, unlockAudio } from '../lib/audioCache';
 import { pauseMs, skipVerse, stepAt, type PauseMode } from '../lib/hifzPlan';
 import { estimateStarts, wordAt, type VerseTimings } from '../lib/timing';
 
@@ -35,15 +35,6 @@ export interface HifzState {
 const INITIAL: HifzState = { status: 'idle', verse: null, verseRep: 0, groupRep: 0, word: -1, progress: 0, gapLeftMs: 0, gapTotalMs: 0, synced: false, error: null };
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-
-function applyRate(a: HTMLAudioElement, rate: number) {
-  a.defaultPlaybackRate = rate;
-  a.playbackRate = rate;
-  // Garde la hauteur de la voix quand on ralentit (sinon le récitateur devient grave et déformé)
-  const x = a as HTMLAudioElement & { preservesPitch?: boolean; webkitPreservesPitch?: boolean };
-  x.preservesPitch = true;
-  x.webkitPreservesPitch = true;
-}
 
 /**
  * Lecteur du module de mémorisation : répète un verset ou un groupe de versets avec le récitateur choisi,

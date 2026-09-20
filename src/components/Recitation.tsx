@@ -3,13 +3,19 @@ import type { Enriched, Meta, Quarter, Verse } from '../types';
 import { getEnriched, loadSurah } from '../lib/data';
 import { StreamAligner, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
 import { hizbRangeOfSurah, indexQuarters, markerFor, quarterKey } from '../lib/hizb';
-import type { VerseStat } from '../lib/storage';
+import { usePersisted, type VerseStat } from '../lib/storage';
 import { useAudio } from '../hooks/useAudio';
 import { isStandaloneIOS, useSpeech } from '../hooks/useSpeech';
 import { unlockAudio } from '../lib/audioCache';
 import { markKey, type Flag, type Marks, type VerseMark } from '../lib/marks';
 import VerseMarks from './VerseMarks';
 import Icon from './Icon';
+import TajweedSheet, { type SheetTarget } from './TajweedSheet';
+import { decodeSpans, loadTajweed, wordPieces, type Fragment } from '../lib/tajweed';
+import { TAJWEED_CODES } from '../lib/tajweedCodes';
+import { RULE_BY_CODE, ruleColorVar } from '../content/tajweedRules';
+
+const shortRuleName = (code: string) => RULE_BY_CODE[code].fr.replace(/\s*\(.*\)\s*$/, '');
 
 interface Props {
   meta: Meta;
@@ -56,6 +62,7 @@ export default function Recitation(p: Props) {
   const [range, setRange] = useState({ from: 1, to: surah.verses });
   const [cfg, setCfg] = useState<VoiceCfg | null>(null);
   const wasListening = useRef(false);
+  const [sheet, setSheet] = useState<SheetTarget | null>(null); // fiche de Tajwid ouverte
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
   const audio = useAudio(reciter, p.repeat, p.tempo);
@@ -92,6 +99,37 @@ export default function Recitation(p: Props) {
   useEffect(() => {
     if (audio.playing) document.getElementById(`v-${audio.playing.verse}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [audio.playing]);
+
+  // --- Tajwid en couleur : chaque règle a sa couleur ; toucher un mot coloré ouvre sa fiche ---------------------------------
+  const [tajweedOn, setTajweedOn] = usePersisted<boolean>('tajweed', false);
+  const [tjData, setTjData] = useState<Record<number, number[]> | null>(null);
+  const [tjError, setTjError] = useState(false);
+  useEffect(() => {
+    if (!tajweedOn) return;
+    let alive = true;
+    setTjData(null);
+    setTjError(false);
+    loadTajweed(surahNum)
+      .then((d) => alive && setTjData(d))
+      .catch(() => alive && setTjError(true));
+    return () => {
+      alive = false;
+    };
+  }, [tajweedOn, surahNum]);
+  const tjByVerse = useMemo(() => {
+    const m = new Map<number, Fragment[]>();
+    if (tjData) for (const [k, flat] of Object.entries(tjData)) m.set(Number(k), decodeSpans(flat));
+    return m;
+  }, [tjData]);
+  const tjRef = useRef(tjByVerse);
+  tjRef.current = tjByVerse;
+  /** Règles présentes dans cette sourate (pour la légende). */
+  const presentRules = useMemo(() => {
+    const set = new Set<number>();
+    tjByVerse.forEach((frs) => frs.forEach((f) => set.add(f.rule)));
+    return [...set].sort((a, b) => a - b);
+  }, [tjByVerse]);
+  const refReciter = meta.reciters.find((r) => r.id === 'alafasy') ?? meta.reciters[0];
 
   // --- Comparaison de ce qui est dit avec le texte -------------------------------------------------------------
   const spoken = useMemo(() => tokenizeSpoken(speech.transcript), [speech.transcript]);
@@ -219,6 +257,20 @@ export default function Recitation(p: Props) {
     a.audio.playVerses(a.surahNum, verseNums);
   }, []);
   const onPlayVerse = useCallback((n: number) => playVerses([n]), [playVerses]);
+  /** Toucher un mot coloré : ouvre la fiche de ses règles (et coupe l'audio et le micro en cours). */
+  const openTajweed = useCallback((n: number, idx: number, start: number, end: number) => {
+    const a = act.current;
+    const v = a.verses?.find((x) => x.n === n);
+    const frags = tjRef.current.get(n);
+    if (!v || !frags) return;
+    a.speech.stop();
+    a.audio.stop();
+    setSheet({ kind: 'word', surah: a.surahNum, verse: n, verseText: v.ar, wordIdx: idx, wordCount: tokenizeVerse(v.ar).length, wordStart: start, wordEnd: end, frags });
+  }, []);
+  const stopForSheet = useCallback(() => {
+    act.current.speech.stop();
+    act.current.audio.stop();
+  }, []);
   // « Répéter » : ouvre le module de mémorisation sur ce verset et le lance. Le son est débloqué ici, pendant l'appui
   // (iOS l'exige), avant de changer d'onglet.
   const onRepeat = useCallback(
@@ -320,8 +372,29 @@ export default function Recitation(p: Props) {
           <button className="btn btn-icon" aria-label="Agrandir" onClick={() => p.onFontSize(Math.min(3, +(p.fontSize + 0.15).toFixed(2)))}><Icon name="plus" /></button>
           <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: false }))}><Icon name="collapse" /> Tout réduire</button>
           <button className="btn-action-compact" onClick={() => setCollapse((c) => ({ n: c.n + 1, open: true }))}><Icon name="expand" /> Tout afficher</button>
+          <button className={`btn-action-compact ${tajweedOn ? 'on' : ''}`} aria-pressed={tajweedOn} onClick={() => setTajweedOn((v) => !v)} title="Colorer les règles de Tajwid dans le texte">
+            <Icon name="palette" /> Tajwid en couleur
+          </button>
         </div>
       </div>
+
+      {tajweedOn && (
+        <div className="tj-legend" aria-label="Légende des couleurs du Tajwid">
+          <p className="tj-legend-title">
+            <Icon name="tajweed" /> Touchez un mot coloré pour comprendre sa règle, ou choisissez une règle :
+          </p>
+          {tjError && <p className="voice-error">Impossible de charger les couleurs du Tajwid. Vérifiez la connexion.</p>}
+          {!tjData && !tjError && <p className="muted">Chargement des couleurs…</p>}
+          <div className="tj-legend-chips">
+            {presentRules.map((r) => (
+              <button key={r} className="tj-chip" onClick={() => setSheet({ kind: 'rule', code: TAJWEED_CODES[r] })}>
+                <span className="tj-dot" style={{ background: ruleColorVar(TAJWEED_CODES[r]) }} aria-hidden="true" />
+                {shortRuleName(TAJWEED_CODES[r])}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="range-bar">
         <span className="range-title"><Icon name="mic" /> Récitation continue</span>
@@ -382,6 +455,8 @@ export default function Recitation(p: Props) {
           onVoiceStart={onVerseVoice}
           onVoiceStop={stopVoice}
           onWordTap={onWordTap}
+          tj={tajweedOn ? tjByVerse.get(v.n) : undefined}
+          onTajweed={openTajweed}
         />
       ))}
 
@@ -427,6 +502,14 @@ export default function Recitation(p: Props) {
           </div>
         </div>
       )}
+      <TajweedSheet
+        target={sheet}
+        onClose={() => setSheet(null)}
+        reciter={reciter}
+        fallback={refReciter}
+        surahNames={meta.surahs.map((s) => s.fr)}
+        onBeforePlay={stopForSheet}
+      />
     </main>
   );
 }
@@ -451,12 +534,17 @@ interface BlockProps {
   onVoiceStart: (n: number) => void;
   onVoiceStop: () => void;
   onWordTap: (n: number, idx: number) => void;
+  /** Fragments colorés du verset (mode « Tajwid en couleur ») et ouverture de la fiche d'un mot. */
+  tj?: Fragment[];
+  onTajweed: (n: number, idx: number, start: number, end: number) => void;
 }
 
 const VerseBlock = memo(function VerseBlock(p: BlockProps) {
   const { verse: v, enriched: e, slice } = p;
   const marker = p.quarter ? markerFor(p.quarter.q) : null;
   const segments = useMemo(() => splitVerse(v.ar), [v.ar]);
+  // Chaque mot découpé en morceaux (texte, règle) ; null pour les signes de pause
+  const tjWords = useMemo(() => (p.tj ? segments.map((s) => (s.idx == null ? null : wordPieces(v.ar, s.start, s.start + s.text.length, p.tj!))) : null), [p.tj, segments, v.ar]);
 
   return (
     <>
@@ -516,6 +604,25 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
                   onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && (ev.preventDefault(), p.onWordTap(v.n, idx))}
                 >
                   {s.text}{' '}
+                </span>
+              );
+            }
+            // Tajwid en couleur : un mot qui contient une règle est touchable et ouvre sa fiche
+            const pieces = tjWords?.[i];
+            if (pieces && pieces.some((pc) => pc.rule >= 0)) {
+              const idx = s.idx as number;
+              const open = () => p.onTajweed(v.n, idx, s.start, s.start + s.text.length);
+              return (
+                <span
+                  key={i}
+                  className="tj-word"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Règles de Tajwid du mot ${idx + 1} du verset ${v.n}`}
+                  onClick={open}
+                  onKeyDown={(ev) => (ev.key === 'Enter' || ev.key === ' ') && (ev.preventDefault(), open())}
+                >
+                  {pieces.map((pc, k) => (pc.rule >= 0 ? <span key={k} className={`tj tj-${TAJWEED_CODES[pc.rule].replace(/_/g, '-')}`}>{pc.text}</span> : pc.text))}{' '}
                 </span>
               );
             }
