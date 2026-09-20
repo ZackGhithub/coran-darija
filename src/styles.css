@@ -191,3 +191,10 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 .hifz-bar .transport { display: flex; gap: 8px; justify-content: center; align-items: center; }
 .hifz-bar .transport-main { flex: 1; max-width: 240px; }
 .rec-dot.play { background: var(--emerald-primary); }
+
+/* Masquage du texte (réciter de mémoire) */
+.hifz-verse.is-masked { cursor: pointer; }
+.hw-mask { display: inline-block; height: 0.32em; margin: 0 0.18em; vertical-align: middle; border-radius: 0.2em; background: var(--border-subtle); }
+.hw-mask.hw-now { background: var(--gold-accent); }
+.hw-mask.hw-past { background: var(--text-muted); opacity: 0.55; }
+.hw-hint { color: var(--text-secondary); }

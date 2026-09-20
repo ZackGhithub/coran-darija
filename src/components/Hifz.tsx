@@ -1,7 +1,8 @@
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { Enriched, Meta, Verse } from '../types';
 import { getEnriched, loadSurah } from '../lib/data';
-import { splitVerse, tokenizeVerse } from '../lib/arabic';
+import { normalizeArabic, splitVerse, tokenizeVerse } from '../lib/arabic';
+import { firstLetters, maskFor, type HideMode } from '../lib/mask';
 import { loadTimings, translitToWord, translitTokens, type VerseTimings } from '../lib/timing';
 import { totalSteps, stepsPerGroup, type PauseMode } from '../lib/hifzPlan';
 import { useHifz, type HifzConfig } from '../hooks/useHifz';
@@ -12,9 +13,12 @@ export interface HifzSettings {
   groupRepeat: number; // 0 = sans fin
   pause: PauseMode;
   showTranslit: boolean;
+  hideMode: HideMode; // masquer le texte pour réciter de mémoire
+  hideFrom: number; // à partir de la lecture n°
+  hideListen: boolean; // aussi pendant que le récitateur lit
 }
 
-export const DEFAULT_HIFZ: HifzSettings = { verseRepeat: 3, groupRepeat: 1, pause: 'verse', showTranslit: true };
+export const DEFAULT_HIFZ: HifzSettings = { verseRepeat: 3, groupRepeat: 1, pause: 'verse', showTranslit: true, hideMode: 'none', hideFrom: 2, hideListen: true };
 export const TEMPOS = [0.5, 0.6, 0.75, 0.9, 1, 1.15, 1.25] as const;
 
 const PAUSES: { id: PauseMode; label: string; hint: string }[] = [
@@ -51,6 +55,7 @@ export default function Hifz(p: Props) {
   const [verses, setVerses] = useState<Verse[] | null>(null);
   const [timings, setTimings] = useState<VerseTimings | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [revealed, setRevealed] = useState<Set<number>>(new Set()); // versets dévoilés d'un toucher
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
   const surah = meta.surahs[sel.surah - 1];
@@ -95,6 +100,26 @@ export default function Hifz(p: Props) {
   const player = useHifz(reciter, sel.surah, hifzVerses, cfg, timings);
   const { state } = player;
   const busy = state.status !== 'idle' && state.status !== 'done' && state.status !== 'error';
+
+  // Un verset dévoilé d'un toucher se recache à la lecture suivante
+  useEffect(() => {
+    setRevealed(new Set());
+  }, [state.verse, state.verseRep]);
+
+  const curIndex = state.verse == null ? null : group.findIndex((g) => g.n === state.verse);
+  const hideOpts = { mode: p.settings.hideMode, hideFrom: p.settings.hideFrom, hideListen: p.settings.hideListen, verseRepeat: p.settings.verseRepeat };
+  const maskOf = (verseIndex: number, n: number): HideMode =>
+    revealed.has(n) ? 'none' : maskFor(hideOpts, verseIndex, { status: state.status, index: curIndex === -1 ? null : curIndex, rep: state.verseRep, group: state.groupRep });
+  // Référence stable : sinon tous les versets seraient redessinés à chaque mot surligné
+  const toggleReveal = useCallback(
+    (n: number) =>
+      setRevealed((r) => {
+        const next = new Set(r);
+        if (!next.delete(n)) next.add(n);
+        return next;
+      }),
+    [],
+  );
 
   // Si on change de sourate, de plage ou de récitateur, on arrête la lecture en cours
   useEffect(() => {
@@ -180,6 +205,30 @@ export default function Hifz(p: Props) {
         </div>
         <p className="hifz-note">Ralentir garde la voix naturelle (la hauteur ne change pas). Commencez lentement, accélérez quand le verset est acquis.</p>
 
+        <h3 className="hifz-h">Réciter de mémoire (masquer le texte)</h3>
+        <div className="chips" role="radiogroup" aria-label="Masquage du texte">
+          {([['none', 'Texte visible'], ['letters', 'Premières lettres'], ['hidden', 'Masqué']] as const).map(([id, label]) => (
+            <button key={id} role="radio" aria-checked={p.settings.hideMode === id} className={`chip ${p.settings.hideMode === id ? 'on' : ''}`} onClick={() => setSettings({ hideMode: id })}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {p.settings.hideMode !== 'none' && (
+          <>
+            <div className="hifz-grid">
+              <Stepper label="Masquer à partir de la lecture n°" value={Math.min(p.settings.hideFrom, p.settings.verseRepeat)} min={1} max={p.settings.verseRepeat} suffix="" onChange={(v) => setSettings({ hideFrom: v })} />
+            </div>
+            <label className="hifz-check">
+              <input type="checkbox" checked={p.settings.hideListen} onChange={(e) => setSettings({ hideListen: e.target.checked })} />
+              Masquer aussi pendant que le récitateur lit
+            </label>
+            <p className="hifz-note">
+              Les premières lectures restent visibles pour apprendre ; ensuite le texte se cache pour réciter de mémoire. Touchez un verset pour le dévoiler,
+              ou mettez en pause : tout se dévoile.
+            </p>
+          </>
+        )}
+
         <h3 className="hifz-h">Récitateur</h3>
         <select className="surah-select reciter-select" value={reciter.id} onChange={(e) => p.onReciter(e.target.value)} aria-label="Choisir le récitateur">
           {meta.reciters.map((r) => (
@@ -201,9 +250,11 @@ export default function Hifz(p: Props) {
       {loadError && <div className="notice notice-error" role="alert">Impossible de charger la sourate. Vérifiez votre connexion.</div>}
       {!verses && !loadError && <div className="loading">Chargement…</div>}
 
-      {group.map(({ verse, n, words }) => (
+      {group.map(({ verse, n, words }, i) => (
         <HifzVerse
           key={n}
+          mask={maskOf(i, n)}
+          onToggle={toggleReveal}
           verse={verse}
           wordCount={words.length}
           enriched={p.settings.showTranslit ? enriched?.get(n) : undefined}
@@ -278,6 +329,8 @@ function Stepper(p: { label: string; value: number; min: number; max: number; su
 
 interface VerseProps {
   verse: Verse;
+  mask: HideMode;
+  onToggle: (n: number) => void;
   wordCount: number;
   enriched?: Enriched;
   active: boolean;
@@ -286,18 +339,38 @@ interface VerseProps {
 }
 
 /** Un verset du groupe : texte arabe et translittération surlignés au rythme de la voix. */
-const HifzVerse = memo(function HifzVerse({ verse: v, wordCount, enriched, active, activeWord, gap }: VerseProps) {
+const HifzVerse = memo(function HifzVerse({ verse: v, mask, onToggle, wordCount, enriched, active, activeWord, gap }: VerseProps) {
   const segments = useMemo(() => splitVerse(v.ar), [v.ar]);
   const tokens = useMemo(() => (enriched ? translitTokens(enriched.translit) : []), [enriched]);
   return (
-    <article className={`verse-card hifz-verse ${active ? 'playing' : ''} ${gap ? 'is-gap' : ''}`} id={`h-${v.n}`}>
+    <article
+      className={`verse-card hifz-verse ${active ? 'playing' : ''} ${gap ? 'is-gap' : ''} ${mask !== 'none' ? 'is-masked' : ''}`}
+      id={`h-${v.n}`}
+      onClick={mask !== 'none' ? () => onToggle(v.n) : undefined}
+      title={mask !== 'none' ? 'Touchez pour dévoiler le verset' : undefined}
+    >
       <div className="verse-top-row">
         <div className="verse-number-badge">{v.n}</div>
         {gap && <span className="pill-badge">🗣️ À vous</span>}
+        {mask !== 'none' && <span className="pill-badge">👁 Touchez pour voir</span>}
       </div>
       <div className="arabic-text" lang="ar" dir="rtl">
         {segments.map((s, i) => {
           const cls = s.idx == null ? '' : s.idx === activeWord ? 'hw-now' : active && s.idx < activeWord ? 'hw-past' : '';
+          if (mask === 'hidden') {
+            if (s.idx == null) return null; // signes de pause : rien à montrer
+            // repère de la longueur du mot : on sait combien de mots réciter, sans voir lesquels
+            const w = Math.max(1.2, normalizeArabic(s.text).length * 0.42);
+            return <span key={i} className={`hw-mask ${cls}`.trim()} style={{ width: `${w}em` }} aria-hidden="true" />;
+          }
+          if (mask === 'letters') {
+            if (s.idx == null) return null;
+            return (
+              <span key={i} className={`hw-hint ${cls}`.trim()} aria-hidden="true">
+                {firstLetters(s.text)}…{' '}
+              </span>
+            );
+          }
           return (
             <span key={i} className={cls || undefined}>
               {s.text}{' '}
@@ -305,7 +378,7 @@ const HifzVerse = memo(function HifzVerse({ verse: v, wordCount, enriched, activ
           );
         })}
       </div>
-      {tokens.length > 0 && (
+      {tokens.length > 0 && mask === 'none' && (
         <div className="translit-block hifz-translit">
           {tokens.map((t, k) => {
             const w = translitToWord(k, tokens.length, wordCount);

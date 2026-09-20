@@ -10,6 +10,7 @@ translittération avec les chiffres 3-7-9, « leviers » de racines communes, co
   La comparaison porte sur les mots (consonnes), pas sur les voyelles brèves ni le tajwid (limite des moteurs vocaux).
 - **Récitation continue** : réciter un groupe de versets ou toute la sourate d'une traite (barre de suivi collée en bas, la page suit le verset en cours). Toucher un mot reprend à partir de celui-ci.
 - **Mémorisation (Hifz)** : isoler un verset ou un groupe de versets et les faire répéter (chaque verset ×N, le groupe ×M ou sans fin), avec une pause pour répéter à voix haute, un **tempo réglable de 0,5× à 1,25×** (hauteur de la voix conservée) et un **surlignage du texte arabe et de la translittération au rythme de la voix**.
+  Mode **« réciter de mémoire »** : à partir de la lecture n°N, le texte se masque (premières lettres ou repères de mots) ; on le dévoile en touchant le verset ou en mettant en pause.
   Le surlignage est exact (horodatages mot à mot de Quran.com) pour 7 récitateurs dont le fichier audio est identique octet pour octet à celui de l'app, et estimé pour les autres.
 - **14 récitateurs** (Alafasy, As-Sudais, Ash-Shuraym, Al-Muaiqly, Al-Husary dont la version pédagogique « Muallim »,
   Abdul Basit, Al-Minshawi…), boucle 1×/3×/5× par verset.
