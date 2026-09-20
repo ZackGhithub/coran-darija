@@ -79,22 +79,32 @@ export default function Recitation(p: Props) {
   // Récitation parfaite : on arrête le micro tout seul
   useEffect(() => {
     if (summary.perfect && speech.listening) speech.stop();
-  }, [summary.perfect, speech]);
+  }, [summary.perfect, speech.listening, speech.stop]);
 
-  // Fin d'écoute : on enregistre le résultat du verset
+  // Fin d'écoute : on enregistre le résultat du verset. Court délai : le moteur peut encore rendre les derniers mots
+  // après « Terminer ». On lit alors les valeurs les plus récentes via une référence.
+  const latest = useRef({ summary, verse: activeVerse, stats: p.verseStats });
+  latest.current = { summary, verse: activeVerse, stats: p.verseStats };
   useEffect(() => {
-    if (wasListening.current && !speech.listening && activeVerse && summary.ok + summary.wrong > 0) {
-      const key = quarterKey(surahNum, activeVerse.n);
-      const prev = p.verseStats[key];
+    if (speech.listening) {
+      wasListening.current = true;
+      return;
+    }
+    if (!wasListening.current) return;
+    wasListening.current = false;
+    window.setTimeout(() => {
+      const { summary: s, verse, stats } = latest.current;
+      if (!verse || s.ok + s.wrong === 0) return;
+      const key = quarterKey(surahNum, verse.n);
+      const prev = stats[key];
       p.onVerseStat(key, {
         attempts: (prev?.attempts ?? 0) + 1,
-        perfect: (prev?.perfect ?? 0) + (summary.perfect ? 1 : 0),
-        bestOk: Math.max(prev?.bestOk ?? 0, summary.ok),
-        total: summary.total,
+        perfect: (prev?.perfect ?? 0) + (s.perfect ? 1 : 0),
+        bestOk: Math.max(prev?.bestOk ?? 0, s.ok),
+        total: s.total,
         last: Date.now(),
       });
-    }
-    wasListening.current = speech.listening;
+    }, 700);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speech.listening]);
 
@@ -104,12 +114,49 @@ export default function Recitation(p: Props) {
     speech.start();
   };
 
+  // Le micro ne doit pas « entendre » le récitateur : on coupe l'écoute avant de lancer l'audio.
+  const playVerses = (verseNums: number[]) => {
+    speech.stop();
+    audio.playVerses(surahNum, verseNums);
+  };
+
+  /** « Aller au verset » : défilement vers le verset, avec un bref halo pour le repérer. */
+  const jumpTo = (n: number) => {
+    const el = document.getElementById(`v-${n}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('jumped');
+    window.setTimeout(() => el.classList.remove('jumped'), 1600);
+  };
+
   const isLearned = p.learned.includes(surahNum);
   const playingVerse = audio.playing?.surah === surahNum ? audio.playing.verse : null;
   const groups = (['murattal', 'muallim', 'mujawwad'] as const).map((s) => ({ s, list: meta.reciters.filter((r) => r.style === s) })).filter((g) => g.list.length);
 
   return (
     <main className="tab-content fade-in">
+      <div className="jump-bar">
+        <select className="surah-select" value={surahNum} onChange={(e) => p.onSurah(Number(e.target.value))} aria-label="Choisir la sourate">
+          {meta.surahs.map((s) => (
+            <option key={s.n} value={s.n}>
+              {p.learned.includes(s.n) ? '🟢' : '⚪'} {s.n}. {s.fr}
+            </option>
+          ))}
+        </select>
+        <select
+          className="surah-select verse-jump"
+          value=""
+          disabled={!verses}
+          onChange={(e) => e.target.value && jumpTo(Number(e.target.value))}
+          aria-label="Aller au verset"
+        >
+          <option value="">Verset…</option>
+          {Array.from({ length: surah.verses }, (_, i) => i + 1).map((n) => (
+            <option key={n} value={n}>Verset {n}</option>
+          ))}
+        </select>
+      </div>
+
       <section className="surah-header-card">
         <h2 className="surah-arabic-title" lang="ar" dir="rtl">{surah.ar}</h2>
         <div className="surah-french-title">{surah.n}. {surah.fr} ({surah.tr})</div>
@@ -140,7 +187,7 @@ export default function Recitation(p: Props) {
           {audio.playing ? (
             <button className="btn" onClick={audio.stop}>⏹ Arrêter</button>
           ) : (
-            <button className="btn btn-primary" disabled={!verses} onClick={() => verses && audio.playVerses(surahNum, verses.map((v) => v.n))}>
+            <button className="btn btn-primary" disabled={!verses} onClick={() => verses && playVerses(verses.map((v) => v.n))}>
               ▶ Écouter la sourate
             </button>
           )}
@@ -175,7 +222,7 @@ export default function Recitation(p: Props) {
           enriched={enriched?.get(v.n)}
           fontSize={p.fontSize}
           playing={playingVerse === v.n}
-          onPlay={() => audio.playVerses(surahNum, [v.n])}
+          onPlay={() => playVerses([v.n])}
           collapse={collapse}
           stat={p.verseStats[quarterKey(surahNum, v.n)]}
           voice={
@@ -283,6 +330,11 @@ function VerseBlock(p: BlockProps) {
             )}
             {!voice.listening && (
               <button className="btn-action-compact" onClick={p.onVoiceReset}>↻ Recommencer</button>
+            )}
+            {voice.transcript && (
+              <span className="voice-heard">
+                Entendu : <bdi lang="ar" dir="rtl">{voice.transcript}</bdi>
+              </span>
             )}
             <span className="voice-hint">Vérifie les mots récités, pas les voyelles ni le tajwid.</span>
             {isStandaloneIOS() && (

@@ -33,7 +33,15 @@ export default function App() {
   const [reciterId, setReciterId] = usePersisted<string>('reciter', 'alafasy');
   const [repeat, setRepeat] = usePersisted<1 | 3 | 5>('repeat', 1);
   const [toast, setToast] = useState<string | null>(null);
+  const [showTop, setShowTop] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 500);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     loadMeta().then(setMeta).catch(() => setMetaError(true));
@@ -180,6 +188,12 @@ export default function App() {
         </p>
         <p className="foot-small">Texte : Tanzil · Traduction : Hamidullah · Audio : everyayah.com</p>
       </footer>
+
+      {showTop && (
+        <button className="top-btn" aria-label="Retour en haut de la page" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          ↑
+        </button>
+      )}
 
       {toast && <div className="toast" role="status">{toast}</div>}
     </div>
