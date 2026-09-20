@@ -21,7 +21,7 @@ const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: '
 const args = new Set(process.argv.slice(2));
 if (![...args].some((a) => ['--staged', '--all', '--dist', '--history'].includes(a))) args.add('--staged');
 
-const ALLOWED_EMAILS = [/^noreply@users\.noreply\.github\.com$/i, /^\d+\+[\w-]+@users\.noreply\.github\.com$/i, /@example\.(com|org|invalid)$/i];
+const ALLOWED_EMAILS = [/^noreply@anthropic.com$/i, /^noreply@users\.noreply\.github\.com$/i, /^\d+\+[\w-]+@users\.noreply\.github\.com$/i, /@example\.(com|org|invalid)$/i];
 const SKIP_FILES = [/^package-lock\.json$/, /^\.privacy-denylist$/, /^scripts\/privacy-check\.mjs$/];
 const BINARY_EXT = /\.(png|jpe?g|gif|webp|ico|icns|woff2?|ttf|otf|mp3|mp4|zip|pdf|gz)$/i;
 
