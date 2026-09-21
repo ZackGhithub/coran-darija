@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   ArrowRight,
   ArrowUp,
   BookOpen,
@@ -77,6 +78,7 @@ const ICONS = {
   book: BookOpen,
   brain: Brain,
   target: Target,
+  range: ArrowLeftRight, // passage : du verset X au verset Y
   compass: Compass,
   settings: Settings,
   sun: Sun,

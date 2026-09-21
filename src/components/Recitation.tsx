@@ -4,9 +4,10 @@ import { getEnriched, loadSurah } from '../lib/data';
 import { StreamAligner, splitVerse, summarize, tokenizeSpoken, tokenizeVerse, type WordStatus } from '../lib/arabic';
 import { hizbRangeOfSurah, indexQuarters, markerFor, quarterKey } from '../lib/hizb';
 import { usePersisted, type VerseStat } from '../lib/storage';
-import { useAudio } from '../hooks/useAudio';
+import { usePlayback } from '../hooks/usePlayback';
+import type { PlayOptions } from '../hooks/useAudio';
+import { playLabel } from '../lib/playLabel';
 import { isStandaloneIOS, useSpeech } from '../hooks/useSpeech';
-import { unlockAudio } from '../lib/audioCache';
 import { markKey, type Flag, type Marks, type VerseMark } from '../lib/marks';
 import VerseMarks from './VerseMarks';
 import Icon from './Icon';
@@ -65,7 +66,7 @@ export default function Recitation(p: Props) {
   const [sheet, setSheet] = useState<SheetTarget | null>(null); // fiche de Tajwid ouverte
 
   const reciter = meta.reciters.find((r) => r.id === p.reciterId) ?? meta.reciters[0];
-  const audio = useAudio(reciter, p.repeat, p.tempo);
+  const audio = usePlayback(reciter, p.tempo);
   const speech = useSpeech('ar-SA');
   const quarterIdx = useMemo(() => indexQuarters(meta.quarters), [meta.quarters]);
   const enriched = useMemo(() => getEnriched(surahNum), [surahNum]);
@@ -216,10 +217,8 @@ export default function Recitation(p: Props) {
   }, [speech.listening]);
 
   // --- Actions (stables : les versets ne sont redessinés que si leurs propres données changent) --------------------
-  const act = useRef({ verses, cfg, statuses, audio, speech, surahNum });
-  act.current = { verses, cfg, statuses, audio, speech, surahNum };
-  const onHifzRef = useRef(p.onHifz);
-  onHifzRef.current = p.onHifz;
+  const act = useRef({ verses, cfg, statuses, audio, speech, surahNum, repeat: p.repeat });
+  act.current = { verses, cfg, statuses, audio, speech, surahNum, repeat: p.repeat };
 
   /** Démarre la récitation vocale d'un verset ou d'une suite ; `fromWord` reprend au mot k de la même suite. */
   const startVoice = useCallback((from: number, to: number, fromWord = 0) => {
@@ -251,10 +250,11 @@ export default function Recitation(p: Props) {
     [startVoice],
   );
   // Le micro ne doit pas « entendre » le récitateur : on coupe l'écoute avant de lancer l'audio.
-  const playVerses = useCallback((verseNums: number[]) => {
+  // `Boucle : N×` = nombre de lectures de chaque verset ; `passages` = lectures du passage entier (0 = en boucle jusqu'à « Arrêter »).
+  const playVerses = useCallback((verseNums: number[], opts?: PlayOptions) => {
     const a = act.current;
     a.speech.stop();
-    a.audio.playVerses(a.surahNum, verseNums);
+    a.audio.play(a.surahNum, verseNums, { repeat: a.repeat, ...opts });
   }, []);
   const onPlayVerse = useCallback((n: number) => playVerses([n]), [playVerses]);
   /** Toucher un mot coloré : ouvre la fiche de ses règles (et coupe l'audio et le micro en cours). */
@@ -271,18 +271,8 @@ export default function Recitation(p: Props) {
     act.current.speech.stop();
     act.current.audio.stop();
   }, []);
-  // « Répéter » : ouvre le module de mémorisation sur ce verset et le lance. Le son est débloqué ici, pendant l'appui
-  // (iOS l'exige), avant de changer d'onglet.
-  const onRepeat = useCallback(
-    (n: number) => {
-      const a = act.current;
-      a.speech.stop();
-      a.audio.stop();
-      unlockAudio();
-      onHifzRef.current(a.surahNum, n, n, true);
-    },
-    [],
-  );
+  // « Répéter » : le verset tourne en boucle sans coupure, sans quitter l'écran, jusqu'à « Arrêter ».
+  const onRepeat = useCallback((n: number) => playVerses([n], { repeat: 1, passages: 0 }), [playVerses]);
 
   /** « Aller au verset » : défilement vers le verset, avec un bref halo pour le repérer. */
   const jumpTo = (n: number) => {
@@ -297,10 +287,11 @@ export default function Recitation(p: Props) {
   const playingVerse = audio.playing?.surah === surahNum ? audio.playing.verse : null;
   const groups = (['murattal', 'muallim', 'mujawwad'] as const).map((s) => ({ s, list: meta.reciters.filter((r) => r.style === s) })).filter((g) => g.list.length);
   const verseOptions = Array.from({ length: surah.verses }, (_, i) => i + 1);
+  const rangeVerses = verses ? verses.filter((v) => v.n >= range.from && v.n <= range.to).map((v) => v.n) : [];
   const heard = speech.transcript.split(/\s+/).filter(Boolean).slice(-10).join(' ');
 
   return (
-    <main className={`tab-content fade-in ${cfg ? 'has-voice-bar' : ''}`}>
+    <main className={`tab-content fade-in ${cfg || audio.playing ? 'has-voice-bar' : ''}`}>
       <div className="jump-bar">
         <select className="surah-select" value={surahNum} onChange={(e) => p.onSurah(Number(e.target.value))} aria-label="Choisir la sourate">
           {meta.surahs.map((s) => (
@@ -353,11 +344,11 @@ export default function Recitation(p: Props) {
           {audio.playing ? (
             <button className="btn" onClick={audio.stop}><Icon name="stop" filled /> Arrêter</button>
           ) : (
-            <button className="btn btn-primary" disabled={!verses} onClick={() => verses && playVerses(verses.map((v) => v.n))}>
+            <button className="btn btn-primary" disabled={!verses} onClick={() => verses && playVerses(verses.map((v) => v.n), { passages: 1 })} title="Toute la sourate, d'une seule traite">
               <Icon name="play" filled /> Écouter la sourate
             </button>
           )}
-          <button className="btn" onClick={() => p.onRepeat(p.repeat === 1 ? 3 : p.repeat === 3 ? 5 : 1)} title="Nombre de lectures de chaque verset">
+          <button className="btn" onClick={() => p.onRepeat(p.repeat === 1 ? 3 : p.repeat === 3 ? 5 : 1)} title="Nombre de lectures de chaque verset (1× : la récitation s'enchaîne sans répétition)">
             Boucle : {p.repeat}×
           </button>
           <select className="surah-select tempo-select" value={p.tempo} onChange={(e) => p.onTempo(Number(e.target.value))} aria-label="Vitesse de la récitation" title="Vitesse de la récitation">
@@ -397,7 +388,7 @@ export default function Recitation(p: Props) {
       )}
 
       <div className="range-bar">
-        <span className="range-title"><Icon name="mic" /> Récitation continue</span>
+        <span className="range-title"><Icon name="range" /> Passage</span>
         <label className="range-field">
           <span>du verset</span>
           <select className="surah-select" value={range.from} onChange={(e) => { const from = Number(e.target.value); setRange((r) => ({ from, to: Math.max(r.to, from) })); }} aria-label="Premier verset à réciter">
@@ -411,7 +402,10 @@ export default function Recitation(p: Props) {
           </select>
         </label>
         <button className="btn-action-compact" onClick={() => setRange({ from: 1, to: surah.verses })}>Toute la sourate</button>
-        <button className="btn-action-compact" onClick={() => p.onHifz(surahNum, range.from, range.to)} title="Répéter ces versets avec le récitateur (module Hifz)"><Icon name="repeat" /> Mémoriser (Hifz)</button>
+        <div className="range-actions">
+          <button className="btn" disabled={!verses} onClick={() => playVerses(rangeVerses, { passages: 1 })} title="Écouter ces versets d'une seule traite"><Icon name="play" filled /> Écouter d'une traite</button>
+          <button className="btn" disabled={!verses} onClick={() => playVerses(rangeVerses, { repeat: 1, passages: 0 })} title="Répéter ces versets en boucle, sans coupure, jusqu'à « Arrêter »"><Icon name="repeat" /> Répéter en boucle</button>
+          <button className="btn" onClick={() => p.onHifz(surahNum, range.from, range.to)} title="Ouvrir ces versets dans l'onglet Hifz (répétitions programmées, masquage du texte)"><Icon name="target" /> Mémoriser (Hifz)</button>
         <button
           className="btn btn-primary"
           disabled={!verses || !speech.supported || speech.listening}
@@ -421,8 +415,9 @@ export default function Recitation(p: Props) {
             startVoice(range.from, range.to);
           }}
         >
-          <Icon name="mic" /> Démarrer
+          <Icon name="mic" /> Réciter le passage
         </button>
+        </div>
       </div>
 
       {audio.error && <div className="notice notice-error" role="alert">{audio.error}</div>}
@@ -459,6 +454,20 @@ export default function Recitation(p: Props) {
           onTajweed={openTajweed}
         />
       ))}
+
+      {audio.playing && !cfg && (
+        <div className="voice-bar audio-bar" role="status" aria-live="polite">
+          <div className="voice-bar-row">
+            <span className="voice-bar-state"><Icon name="sound" /> {playLabel(audio.playing.verse, audio.info)}</span>
+            <span className="voice-bar-actions">
+              <button className="btn voice-on" onClick={audio.stop}><Icon name="stop" filled /> Arrêter</button>
+            </span>
+          </div>
+          {!audio.seamless && audio.info && audio.info.count > 1 && (
+            <div className="voice-hint">À une vitesse autre que 1×, de courtes coupures peuvent s&apos;entendre entre les versets. Choisissez « Vitesse 1× » pour un enchaînement sans coupure.</div>
+          )}
+        </div>
+      )}
 
       {cfg && (
         <div className="voice-bar" role="status" aria-live="polite">
@@ -567,7 +576,7 @@ const VerseBlock = memo(function VerseBlock(p: BlockProps) {
               </span>
             )}
             <button className="verse-play-btn" onClick={() => p.onPlay(v.n)}><Icon name="play" filled /> Écouter</button>
-            <button className="verse-play-btn" onClick={() => p.onRepeat(v.n)} title="Répéter ce verset avec le récitateur (module Hifz)"><Icon name="repeat" /> Répéter</button>
+            <button className="verse-play-btn" onClick={() => p.onRepeat(v.n)} title="Répéter ce verset en boucle, sans coupure, jusqu'à « Arrêter »"><Icon name="repeat" /> Répéter</button>
             {p.listening ? (
               <button className="verse-play-btn voice-on" onClick={p.onVoiceStop}><Icon name="stop" filled /> Terminer</button>
             ) : (

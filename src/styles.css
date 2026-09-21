@@ -267,3 +267,8 @@ body:has(.voice-bar) .top-btn { bottom: calc(150px + env(safe-area-inset-bottom)
 /* Quart de Hizb partiellement mémorisé */
 .quarter-check.partial { background: var(--emerald-light); border-color: var(--emerald-primary); color: var(--emerald-primary); }
 .quarter-count { white-space: nowrap; }
+
+/* Récitation : passage (du verset X au verset Y) et lecture sans coupure */
+.range-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; flex-basis: 100%; }
+.range-actions .btn { width: 100%; padding-inline: 10px; font-size: 0.85rem; line-height: 1.2; gap: 0.4em; }
+.audio-bar .voice-bar-state { display: inline-flex; align-items: center; gap: 0.5em; }
