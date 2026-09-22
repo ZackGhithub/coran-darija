@@ -23,6 +23,14 @@ export const gaplessSupported = () => !!Ctor();
 const AHEAD_S = 25;
 const MAX_CACHED = 14;
 
+/**
+ * Fondu très court à l'entrée et à la sortie de chaque verset (s). Deux fichiers de récitateurs différents ne se
+ * raccordent pas forcément sur un passage par zéro : sans ce fondu, un saut d'amplitude produit un petit clic audible
+ * à la jonction (mesuré jusqu'à 40× la variation normale du signal chez certains récitateurs). 6 ms est trop court
+ * pour s'entendre comme un silence, mais suffit à ramener le saut sous le bruit de fond normal.
+ */
+const FADE_S = 0.006;
+
 let ctx: AudioContext | null = null;
 let keepAlive: HTMLAudioElement | null = null;
 
@@ -100,6 +108,7 @@ interface Slot {
   end: number;
   info: PlayInfo;
   src: AudioBufferSourceNode;
+  gain: GainNode;
 }
 
 export function useGapless(reciter: Reciter | undefined) {
@@ -115,6 +124,7 @@ export function useGapless(reciter: Reciter | undefined) {
       try {
         s.src.stop();
         s.src.disconnect();
+        s.gain.disconnect();
       } catch {
         /* déjà terminé */
       }
@@ -177,11 +187,19 @@ export function useGapless(reciter: Reciter | undefined) {
             // Le réseau a pris du retard : on repart tout de suite (seul cas où une coupure est possible)
             if (t < c.currentTime + 0.03) t = c.currentTime + 0.05;
             const src = c.createBufferSource();
+            const gain = c.createGain();
             src.buffer = buf;
-            src.connect(c.destination);
+            src.connect(gain);
+            gain.connect(c.destination);
+            // Fondu d'entrée/sortie : évite le petit clic si les deux fichiers ne se raccordent pas sur un passage par zéro
+            const fade = Math.min(FADE_S, buf.duration / 2);
+            gain.gain.setValueAtTime(0, t);
+            gain.gain.linearRampToValueAtTime(1, t + fade);
+            gain.gain.setValueAtTime(1, t + buf.duration - fade);
+            gain.gain.linearRampToValueAtTime(0, t + buf.duration);
             src.start(t);
             const info: PlayInfo = { verseRep: cur.step.verseRep, verseRepeat: plan.verseRepeat, group: cur.step.group, passages: plan.groupRepeat, count: plan.count };
-            slots.current.push({ verse: verses[cur.step.verseIndex], start: t, end: t + buf.duration, info, src });
+            slots.current.push({ verse: verses[cur.step.verseIndex], start: t, end: t + buf.duration, info, src, gain });
             t += buf.duration;
             idx++;
             // Ne programme pas plus loin que nécessaire (boucle sans fin, sourate très longue)
